@@ -164,9 +164,7 @@ if(NOT GCC_EXECUTABLE)
 
     message(FATAL_ERROR
         "\n"
-        "╔═══────────────────────────────────────────────────────────────────────────═══╗\n"
-        "                            GCC COMPILER NOT FOUND!                             \n"
-        "╚═══────────────────────────────────────────────────────────────────────────═══╝\n"
+        "════────── GCC COMPILER NOT FOUND ───────────────────────────════\n"
         "\n"
         "This project requires GCC for competitive programming features:\n"
         "  - <bits/stdc++.h> header\n"
@@ -178,7 +176,7 @@ if(NOT GCC_EXECUTABLE)
         "${_INSTALL_HINT}"
         "\n"
         "After installation, re-run 'cppconf' to configure the project.\n"
-        "╬═══────────────────────────────────────────────────────────────────────────═══╬\n")
+        "════─────────────────────────────────────────────────────────════\n")
 endif()
 
 # Verify the found compiler is actually GCC and get version info.
@@ -225,14 +223,13 @@ endif()
 if(GCC_VERSION_OUTPUT MATCHES "clang" OR GCC_VERSION_OUTPUT MATCHES "Apple")
     message(WARNING
         "\n"
-        "╔═══────────────────────────────────────────────────────────────────────────═══╗\n"
-        "                         WARNING: CLANG DETECTED AS G++                         \n"
-        "╚═══────────────────────────────────────────────────────────────────────────═══╝\n"
+        "════────── WARNING: CLANG DETECTED AS G++ ───────────────────════\n"
         "\n"
         "The 'g++' command at ${GCC_EXECUTABLE} is actually Clang, not GCC.\n"
         "This is common on macOS where 'g++' is aliased to Clang.\n"
         "\n"
-        "Searching for real GCC installation...\n")
+        "Searching for real GCC installation...\n"
+        "════─────────────────────────────────────────────────────────════\n")
 
     # Try to find real GCC by excluding the fake one.
     list(REMOVE_ITEM COMPILER_SEARCH_PATHS "/usr/bin")
@@ -259,8 +256,11 @@ if(GCC_VERSION_OUTPUT MATCHES "clang" OR GCC_VERSION_OUTPUT MATCHES "Apple")
         string(REGEX MATCH "^([0-9]+)" GCC_MAJOR_VERSION "${GCC_VERSION}")
     else()
         message(FATAL_ERROR
+            "\n"
+            "════────── ERROR: REAL GCC NOT FOUND ────────────────────────════\n"
+            "\n"
             "Could not find real GCC. Please install it using the instructions above.\n"
-            "╚═══────────────────────────────────────────────────────────────────────────═══╝\n")
+            "════─────────────────────────────────────────────────────────════\n")
     endif()
 endif()
 
@@ -355,9 +355,7 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Disable compiler extensions" FORCE)
 
 # Success message with summary.
 message(STATUS "")
-message(STATUS "╔═══────────────────────────────────────────────────────────────────────────═══╗")
-message(STATUS "                     GCC Toolchain Successfully Configured                      ")
-message(STATUS "╚═══────────────────────────────────────────────────────────────────────────═══╝")
+message(STATUS "╔═══────── GCC TOOLCHAIN CONFIGURED ─────────────────────────═══╗")
 message(STATUS "  C++ compiler : ${CMAKE_CXX_COMPILER}")
 if(GCC_VERSION)
     message(STATUS "  GCC version  : ${GCC_VERSION}")
@@ -382,7 +380,7 @@ else()
     message(STATUS "  Build type   : ${CMAKE_BUILD_TYPE}")
 endif()
 
-message(STATUS "╚═══────────────────────────────────────────────────────────────────────────═══╝")
+message(STATUS "╚═══─────────────────────────────────────────────────────────═══╝")
 message(STATUS "")
 
 # ============================================================================ #
