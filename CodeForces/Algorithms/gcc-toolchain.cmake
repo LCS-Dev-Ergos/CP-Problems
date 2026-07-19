@@ -52,7 +52,7 @@ else()
     if(APPLE)
         # macOS with Homebrew - prioritize newer versions and Homebrew paths.
         set(COMPILER_SEARCH_NAMES
-            g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++
+            g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++
         )
         set(COMPILER_SEARCH_PATHS
             /opt/homebrew/bin           # Apple Silicon Homebrew.
@@ -64,7 +64,7 @@ else()
     elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
         # Linux - check both versioned and unversioned, prefer newer versions.
         set(COMPILER_SEARCH_NAMES
-            g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++-9 g++
+            g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++-9 g++
         )
 
         # Detect Linux distribution for better path handling.
@@ -94,7 +94,7 @@ else()
     else()
         # BSD and other Unix systems
         set(COMPILER_SEARCH_NAMES
-            g++15 g++14 g++13 g++12 g++11 g++10 g++9 g++
+            g++16 g++15 g++14 g++13 g++12 g++11 g++10 g++9 g++
         )
         set(COMPILER_SEARCH_PATHS
             /usr/local/bin
