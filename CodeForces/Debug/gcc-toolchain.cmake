@@ -50,11 +50,17 @@ else()
     # Platform-specific compiler search paths and version preferences.
     # Prefer newer versions for better C++23 support and optimizations.
     if(APPLE)
-        # macOS with Homebrew - prioritize newer versions and Homebrew paths.
-        set(COMPILER_SEARCH_NAMES 
-            g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++
+        # macOS - prioritize Nix's g++ (a real, pinned GNU compiler, see
+        # home/gcc), then Homebrew's versioned binaries as a fallback
+        # (Homebrew's gcc is a deliberate holdout, see darwin/homebrew.nix).
+        set(COMPILER_SEARCH_NAMES
+            g++-16 g++-15 g++-14 g++-13 g++-12 g++-11 g++-10 g++
         )
-        set(COMPILER_SEARCH_PATHS 
+        set(COMPILER_SEARCH_PATHS
+            /etc/profiles/per-user/$ENV{USER}/bin  # Nix (home-manager) - PRIORITY
+            $ENV{HOME}/.nix-profile/bin            # Nix (user profile)
+            /nix/var/nix/profiles/default/bin      # Nix (system profile)
+            /run/current-system/sw/bin             # Nix (system closure)
             /opt/homebrew/bin           # Apple Silicon Homebrew.
             /usr/local/bin              # Intel Mac Homebrew.
             /opt/local/bin              # MacPorts.

@@ -39,14 +39,20 @@ if(DEFINED CACHE{CACHED_CLANG_EXECUTABLE} AND EXISTS "${CACHED_CLANG_EXECUTABLE}
 else()
     # Search for Clang compiler.
     if(APPLE)
-        # On macOS, prefer LLVM clang (has best sanitizer support).
+        # On macOS, prefer LLVM clang (has best sanitizer support). Nix's
+        # wrapped clang auto-detects the SDK and libc++ on its own, unlike
+        # Homebrew's raw keg -- see home/llvm in the dotfiles repo.
         set(COMPILER_SEARCH_NAMES
             clang++                    # LLVM clang (preferred).
             clang++-20 clang++-19 clang++-18 clang++-17 clang++-16
         )
         set(COMPILER_SEARCH_PATHS
-            /opt/homebrew/opt/llvm/bin  # Homebrew LLVM.
-            /usr/local/opt/llvm/bin     # Homebrew LLVM (Intel).
+            /etc/profiles/per-user/$ENV{USER}/bin  # Nix (home-manager) - PRIORITY
+            $ENV{HOME}/.nix-profile/bin            # Nix (user profile)
+            /nix/var/nix/profiles/default/bin      # Nix (system profile)
+            /run/current-system/sw/bin             # Nix (system closure)
+            /opt/homebrew/opt/llvm/bin  # Homebrew LLVM. - legacy
+            /usr/local/opt/llvm/bin     # Homebrew LLVM (Intel). - legacy
             /opt/local/bin              # MacPorts.
             /usr/bin                    # System (AppleClang).
         )
@@ -179,39 +185,46 @@ set(CMAKE_CXX_COMPILER ${CLANG_EXECUTABLE} CACHE PATH "C++ compiler" FORCE)
 
 # Force LLVM's libc++ headers and libraries when using LLVM Clang.
 if(NOT IS_APPLE_CLANG AND APPLE)
-    # Get LLVM installation directory.
-    get_filename_component(LLVM_BIN_DIR ${CLANG_EXECUTABLE} DIRECTORY)
-    get_filename_component(LLVM_ROOT ${LLVM_BIN_DIR} DIRECTORY)
-
-    # Set paths to LLVM's libc++ (avoiding duplicates).
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++" CACHE STRING "" FORCE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${LLVM_ROOT}/include/c++/v1" CACHE STRING "" FORCE)
-
-    # Configure RPATH and linking cleanly.
-    set(LLVM_LIB_DIR "${LLVM_ROOT}/lib/c++")
-
-    # Preserve pre-existing linker flags and append LLVM runtime path only once.
-    set(_LLVM_LINKER_FLAGS "-L${LLVM_LIB_DIR} -Wl,-rpath,${LLVM_LIB_DIR}")
-    if(CMAKE_EXE_LINKER_FLAGS)
-        string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${_LLVM_LINKER_FLAGS}" _LLVM_LINKER_FLAGS_INDEX)
-        if(_LLVM_LINKER_FLAGS_INDEX EQUAL -1)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_LLVM_LINKER_FLAGS}" CACHE STRING "" FORCE)
-        endif()
-        unset(_LLVM_LINKER_FLAGS_INDEX)
+    if(CLANG_EXECUTABLE MATCHES "/nix/store/|nix-profile|per-user|current-system")
+        # Nix's clang wrapper already bakes in the right -stdlib/-isysroot/
+        # libc++ paths itself. The manual RPATH dance below exists only for
+        # Homebrew's raw keg, which ships unwrapped and needs it by hand.
+        message(STATUS "Nix-provided Clang detected: wrapper already configures libc++, skipping manual setup")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "${_LLVM_LINKER_FLAGS}" CACHE STRING "" FORCE)
+        # Get LLVM installation directory.
+        get_filename_component(LLVM_BIN_DIR ${CLANG_EXECUTABLE} DIRECTORY)
+        get_filename_component(LLVM_ROOT ${LLVM_BIN_DIR} DIRECTORY)
+
+        # Set paths to LLVM's libc++ (avoiding duplicates).
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++" CACHE STRING "" FORCE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${LLVM_ROOT}/include/c++/v1" CACHE STRING "" FORCE)
+
+        # Configure RPATH and linking cleanly.
+        set(LLVM_LIB_DIR "${LLVM_ROOT}/lib/c++")
+
+        # Preserve pre-existing linker flags and append LLVM runtime path only once.
+        set(_LLVM_LINKER_FLAGS "-L${LLVM_LIB_DIR} -Wl,-rpath,${LLVM_LIB_DIR}")
+        if(CMAKE_EXE_LINKER_FLAGS)
+            string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${_LLVM_LINKER_FLAGS}" _LLVM_LINKER_FLAGS_INDEX)
+            if(_LLVM_LINKER_FLAGS_INDEX EQUAL -1)
+                set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_LLVM_LINKER_FLAGS}" CACHE STRING "" FORCE)
+            endif()
+            unset(_LLVM_LINKER_FLAGS_INDEX)
+        else()
+            set(CMAKE_EXE_LINKER_FLAGS "${_LLVM_LINKER_FLAGS}" CACHE STRING "" FORCE)
+        endif()
+        unset(_LLVM_LINKER_FLAGS)
+
+        # Use LLVM's libc++ instead of system.
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++" CACHE STRING "" FORCE)
+
+        # Disable automatic RPATH handling in CMakeLists.txt for this case.
+        set(CMAKE_SKIP_BUILD_RPATH TRUE CACHE BOOL "" FORCE)
+        set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE CACHE BOOL "" FORCE)
+        set(CMAKE_INSTALL_RPATH "${LLVM_LIB_DIR}" CACHE STRING "" FORCE)
+
+        message(STATUS "Using LLVM libc++ from: ${LLVM_LIB_DIR}")
     endif()
-    unset(_LLVM_LINKER_FLAGS)
-
-    # Use LLVM's libc++ instead of system.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++" CACHE STRING "" FORCE)
-
-    # Disable automatic RPATH handling in CMakeLists.txt for this case.
-    set(CMAKE_SKIP_BUILD_RPATH TRUE CACHE BOOL "" FORCE)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE CACHE BOOL "" FORCE)
-    set(CMAKE_INSTALL_RPATH "${LLVM_LIB_DIR}" CACHE STRING "" FORCE)
-
-  message(STATUS "Using LLVM libc++ from: ${LLVM_LIB_DIR}")
 endif()
 
 # Ensure standard support.
