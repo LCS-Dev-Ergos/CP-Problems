@@ -3,6 +3,8 @@
 
 #include "../_Common.hpp"
 
+#include <cassert>
+
 /// @brief Hierarchical 64-ary ordered set on the range [0, n).
 struct FastSet {
   static constexpr I32 B = 64;

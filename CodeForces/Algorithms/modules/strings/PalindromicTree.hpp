@@ -3,6 +3,8 @@
 
 #include "_Common.hpp"
 
+#include <cassert>
+
 /**
  * @brief Eertree / palindromic tree for one string.
  *

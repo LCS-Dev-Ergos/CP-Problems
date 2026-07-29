@@ -3,6 +3,8 @@
 
 #include "../_Common.hpp"
 
+#include <cassert>
+
 template <typename Monoid>
 struct SlidingWindowAggregation {
   using Value = typename Monoid::value_type;

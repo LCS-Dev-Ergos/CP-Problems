@@ -4,6 +4,8 @@
 #include "Graph.hpp"
 #include "_Common.hpp"
 
+#include <cassert>
+
 /**
  * @brief 0-1 BFS shortest paths for graphs with edge weights in {0, 1}.
  *

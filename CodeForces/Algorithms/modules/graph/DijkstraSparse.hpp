@@ -4,6 +4,8 @@
 #include "Graph.hpp"
 #include "_Common.hpp"
 
+#include <cassert>
+
 /**
  * @brief Dijkstra on sparse graphs with path restoration.
  *

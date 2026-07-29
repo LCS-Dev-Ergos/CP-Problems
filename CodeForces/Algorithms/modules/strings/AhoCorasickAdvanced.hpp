@@ -3,6 +3,8 @@
 
 #include "_Common.hpp"
 
+#include <cassert>
+
 /**
  * @brief Advanced Aho-Corasick for lowercase alphabet.
  *

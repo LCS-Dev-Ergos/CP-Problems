@@ -40,7 +40,7 @@ __all__ = [
 DEFAULT_PROBE_TIMEOUT_SECONDS: float = 10.0
 MAX_PROBE_JOBS: int = 8
 DEFAULT_PROBE_JOBS: int = min(os.cpu_count() or 1, MAX_PROBE_JOBS)
-_COMPILER_CANDIDATES: tuple[str, ...] = ("g++-15", "g++-14", "g++-13", "g++", "c++")
+_COMPILER_CANDIDATES: tuple[str, ...] = ("g++-16", "g++-15", "g++-14", "g++-13", "g++", "c++")
 
 
 def parse_jobs_argument(raw: str) -> int:
