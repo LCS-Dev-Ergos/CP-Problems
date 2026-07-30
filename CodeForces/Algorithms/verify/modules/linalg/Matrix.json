@@ -1,0 +1,23 @@
+{
+  "name": "Matrix",
+  "header": "modules/linalg/Matrix.hpp",
+  "category": "linalg",
+  "tags": [
+    "matrix",
+    "linear-algebra",
+    "matrix-power"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/linalg/Matrix.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/linalg/Matrix.compile.cpp"
+    }
+  ]
+}

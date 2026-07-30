@@ -1,0 +1,23 @@
+{
+  "name": "XorBasis",
+  "header": "modules/linalg/XorBasis.hpp",
+  "category": "linalg",
+  "tags": [
+    "xor",
+    "linear-basis",
+    "gf2"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/linalg/XorBasis.runtime.cpp",
+      "timeout_seconds": 30.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/linalg/XorBasis.compile.cpp"
+    }
+  ]
+}

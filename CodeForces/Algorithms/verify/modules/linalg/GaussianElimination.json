@@ -1,0 +1,24 @@
+{
+  "name": "GaussianElimination",
+  "header": "modules/linalg/GaussianElimination.hpp",
+  "category": "linalg",
+  "tags": [
+    "gaussian-elimination",
+    "determinant",
+    "rank",
+    "linear-system"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/linalg/GaussianElimination.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/linalg/GaussianElimination.compile.cpp"
+    }
+  ]
+}
