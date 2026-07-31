@@ -32,6 +32,7 @@
 #include "graph/tree/TreeDiameter.hpp"
 #include "graph/tree/TreeCenter.hpp"
 #include "graph/tree/TreeCore.hpp"
+#include "graph/tree/RerootingDP.hpp"
 #include "graph/tree/TreeMonoid.hpp"
 #include "graph/tree/StaticTreeMonoid.hpp"
 #include "graph/functional/FunctionalGraph.hpp"

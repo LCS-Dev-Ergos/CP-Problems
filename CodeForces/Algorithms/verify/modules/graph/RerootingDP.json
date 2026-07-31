@@ -1,0 +1,23 @@
+{
+  "name": "RerootingDP",
+  "header": "modules/graph/tree/RerootingDP.hpp",
+  "category": "graph",
+  "tags": [
+    "tree",
+    "rerooting",
+    "tree-dp"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/RerootingDP.runtime.cpp",
+      "timeout_seconds": 30.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/RerootingDP.compile.cpp"
+    }
+  ]
+}
