@@ -1,0 +1,24 @@
+{
+  "name": "SubsetTransform",
+  "header": "modules/bitwise/SubsetTransform.hpp",
+  "category": "bitwise",
+  "tags": [
+    "sos-dp",
+    "zeta",
+    "mobius",
+    "subset-convolution"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/bitwise/SubsetTransform.runtime.cpp",
+      "timeout_seconds": 30.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/bitwise/SubsetTransform.compile.cpp"
+    }
+  ]
+}

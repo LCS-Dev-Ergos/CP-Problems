@@ -17,6 +17,8 @@
 #include "number_theory/PrimitiveRoot.hpp"
 #include "number_theory/TonelliShanks.hpp"
 #include "number_theory/Lucas.hpp"
+#include "number_theory/Binomial.hpp"
+#include "number_theory/FloorSum.hpp"
 #include "number_theory/NTT.hpp"
 #include "number_theory/FWHT.hpp"
 #include "number_theory/Mobius.hpp"

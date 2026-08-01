@@ -1,0 +1,23 @@
+{
+  "name": "FloorSum",
+  "header": "modules/number_theory/FloorSum.hpp",
+  "category": "number_theory",
+  "tags": [
+    "floor-sum",
+    "euclidean",
+    "lattice-points"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/number_theory/FloorSum.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/number_theory/FloorSum.compile.cpp"
+    }
+  ]
+}

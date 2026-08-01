@@ -1,0 +1,24 @@
+{
+  "name": "Binomial",
+  "header": "modules/number_theory/Binomial.hpp",
+  "category": "number_theory",
+  "tags": [
+    "combinatorics",
+    "binomial",
+    "factorial",
+    "modint"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/number_theory/Binomial.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/number_theory/Binomial.compile.cpp"
+    }
+  ]
+}

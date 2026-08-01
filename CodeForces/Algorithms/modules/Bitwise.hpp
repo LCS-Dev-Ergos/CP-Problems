@@ -6,6 +6,7 @@
  * @brief Umbrella include for bitwise-oriented helpers.
  */
 
+#include "bitwise/SubsetTransform.hpp"
 #include "bitwise/XorBoundIntervals.hpp"
 
 #endif
