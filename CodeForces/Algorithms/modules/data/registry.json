@@ -19,7 +19,8 @@
         "lca",
         "scc",
         "bridges",
-        "articulation_points"
+        "articulation_points",
+        "rerooting_dp"
       ],
       "size_kb": 15.2,
       "compile_time_impact": "medium"
@@ -99,7 +100,9 @@
         "euler_phi",
         "chinese_remainder",
         "discrete_log",
-        "fwht"
+        "fwht",
+        "binomial",
+        "floor_sum"
       ],
       "size_kb": 10.3,
       "compile_time_impact": "low"
@@ -130,11 +133,36 @@
       ],
       "description": "Bitwise-oriented helpers and interval primitives",
       "features": [
-        "xor_bound_intervals"
+        "xor_bound_intervals",
+        "subset_zeta",
+        "subset_mobius",
+        "subset_convolution",
+        "or_convolution",
+        "and_convolution"
       ],
       "size_kb": 4.2,
       "compile_time_impact": "low"
+    },
+    "linalg": {
+      "files": [
+        "Linear_Algebra.hpp"
+      ],
+      "dependencies": [
+        "core"
+      ],
+      "description": "Matrix and GF(2) linear algebra",
+      "features": [
+        "matrix",
+        "matrix_power",
+        "determinant",
+        "matrix_rank",
+        "matrix_inverse",
+        "solve_linear",
+        "xor_basis"
+      ],
+      "size_kb": 8.4,
+      "compile_time_impact": "low"
     }
   },
-  "updated": "2026-05-24T23:10:00"
+  "updated": "2026-08-04T00:00:00"
 }
