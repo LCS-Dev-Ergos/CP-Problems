@@ -1,0 +1,24 @@
+{
+  "name": "MongeDP",
+  "header": "modules/optimization/MongeDP.hpp",
+  "category": "optimization",
+  "tags": [
+    "monge",
+    "shortest-path",
+    "aliens-trick",
+    "dp-optimization"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/optimization/MongeDP.runtime.cpp",
+      "timeout_seconds": 30.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/optimization/MongeDP.compile.cpp"
+    }
+  ]
+}

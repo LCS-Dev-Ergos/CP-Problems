@@ -1,0 +1,24 @@
+{
+  "name": "SlopeTrick",
+  "header": "modules/optimization/SlopeTrick.hpp",
+  "category": "optimization",
+  "tags": [
+    "slope-trick",
+    "convex",
+    "piecewise-linear",
+    "dp-optimization"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/optimization/SlopeTrick.runtime.cpp",
+      "timeout_seconds": 30.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/optimization/SlopeTrick.compile.cpp"
+    }
+  ]
+}

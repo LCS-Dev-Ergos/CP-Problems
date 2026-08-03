@@ -1,0 +1,24 @@
+{
+  "name": "KnuthOptimization",
+  "header": "modules/optimization/KnuthOptimization.hpp",
+  "category": "optimization",
+  "tags": [
+    "knuth",
+    "interval-dp",
+    "quadrangle-inequality",
+    "dp-optimization"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/optimization/KnuthOptimization.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/optimization/KnuthOptimization.compile.cpp"
+    }
+  ]
+}

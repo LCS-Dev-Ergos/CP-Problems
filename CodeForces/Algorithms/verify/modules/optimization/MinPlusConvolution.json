@@ -1,0 +1,25 @@
+{
+  "name": "MinPlusConvolution",
+  "header": "modules/optimization/MinPlusConvolution.hpp",
+  "category": "optimization",
+  "tags": [
+    "min-plus",
+    "max-plus",
+    "convolution",
+    "convex",
+    "knapsack"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/optimization/MinPlusConvolution.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/optimization/MinPlusConvolution.compile.cpp"
+    }
+  ]
+}

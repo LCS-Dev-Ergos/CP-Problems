@@ -1,0 +1,24 @@
+{
+  "name": "MonotoneMinima",
+  "header": "modules/optimization/MonotoneMinima.hpp",
+  "category": "optimization",
+  "tags": [
+    "monotone-minima",
+    "smawk",
+    "monge",
+    "dp-optimization"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/optimization/MonotoneMinima.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/optimization/MonotoneMinima.compile.cpp"
+    }
+  ]
+}
