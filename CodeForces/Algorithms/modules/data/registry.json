@@ -162,7 +162,29 @@
       ],
       "size_kb": 8.4,
       "compile_time_impact": "low"
+    },
+    "optimization": {
+      "files": [
+        "Optimization.hpp"
+      ],
+      "dependencies": [
+        "core"
+      ],
+      "description": "Dynamic programming optimization techniques",
+      "features": [
+        "monotone_minima",
+        "smawk",
+        "larsch",
+        "monge_shortest_path",
+        "aliens_trick",
+        "knuth_optimization",
+        "slope_trick",
+        "minplus_convolution",
+        "maxplus_convolution"
+      ],
+      "size_kb": 25.5,
+      "compile_time_impact": "low"
     }
   },
-  "updated": "2026-08-04T00:00:00"
+  "updated": "2026-08-09T00:00:00"
 }
