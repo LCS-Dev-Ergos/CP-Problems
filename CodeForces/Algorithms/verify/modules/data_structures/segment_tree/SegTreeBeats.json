@@ -1,0 +1,24 @@
+{
+  "name": "SegTreeBeats",
+  "header": "modules/data_structures/segment_tree/SegTreeBeats.hpp",
+  "category": "data_structures",
+  "tags": [
+    "segment_tree",
+    "segment_tree_beats",
+    "chmin_chmax",
+    "lazy_propagation"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/segment_tree/SegTreeBeats.runtime.cpp",
+      "timeout_seconds": 40.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/segment_tree/SegTreeBeats.compile.cpp"
+    }
+  ]
+}
