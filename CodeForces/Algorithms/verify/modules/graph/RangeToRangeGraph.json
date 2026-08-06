@@ -1,0 +1,24 @@
+{
+  "name": "RangeToRangeGraph",
+  "header": "modules/graph/RangeToRangeGraph.hpp",
+  "category": "graph",
+  "tags": [
+    "segment_tree",
+    "graph_construction",
+    "range_edges",
+    "shortest_path"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/RangeToRangeGraph.runtime.cpp",
+      "timeout_seconds": 40.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/RangeToRangeGraph.compile.cpp"
+    }
+  ]
+}
