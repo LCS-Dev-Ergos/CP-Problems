@@ -1,0 +1,24 @@
+{
+  "name": "ParallelBinarySearch",
+  "header": "modules/data_structures/offline/ParallelBinarySearch.hpp",
+  "category": "data_structures",
+  "tags": [
+    "offline_query",
+    "parallel_binary_search",
+    "binary_search",
+    "union_find"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/offline/ParallelBinarySearch.runtime.cpp",
+      "timeout_seconds": 40.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/offline/ParallelBinarySearch.compile.cpp"
+    }
+  ]
+}
