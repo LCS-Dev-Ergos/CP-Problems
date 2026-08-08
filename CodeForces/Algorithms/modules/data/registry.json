@@ -20,9 +20,10 @@
         "scc",
         "bridges",
         "articulation_points",
-        "rerooting_dp"
+        "rerooting_dp",
+        "range_to_range_graph"
       ],
-      "size_kb": 15.2,
+      "size_kb": 16.5,
       "compile_time_impact": "medium"
     },
     "string": {
@@ -57,6 +58,7 @@
       "description": "Advanced data structures",
       "features": [
         "segment_tree",
+        "segment_tree_beats",
         "acted_lazy_segment_tree",
         "dual_segment_tree",
         "dynamic_segment_tree",
@@ -80,9 +82,10 @@
         "sparse_table",
         "monoid_sparse_table",
         "heap",
-        "treap"
+        "treap",
+        "parallel_binary_search"
       ],
-      "size_kb": 18.5,
+      "size_kb": 21.0,
       "compile_time_impact": "high"
     },
     "number_theory": {
@@ -186,5 +189,5 @@
       "compile_time_impact": "low"
     }
   },
-  "updated": "2026-08-09T00:00:00"
+  "updated": "2026-08-09T12:00:00"
 }
