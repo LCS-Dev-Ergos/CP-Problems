@@ -1,0 +1,24 @@
+{
+  "name": "NTT",
+  "header": "modules/number_theory/NTT.hpp",
+  "category": "number_theory",
+  "tags": [
+    "ntt",
+    "convolution",
+    "polynomial",
+    "roots-of-unity"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/number_theory/NTT.runtime.cpp",
+      "timeout_seconds": 40.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/number_theory/NTT.compile.cpp"
+    }
+  ]
+}
