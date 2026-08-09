@@ -1,0 +1,25 @@
+{
+  "name": "ArbitraryModConvolution",
+  "header": "modules/number_theory/ArbitraryModConvolution.hpp",
+  "category": "number_theory",
+  "tags": [
+    "convolution",
+    "ntt",
+    "garner",
+    "crt",
+    "arbitrary-modulus"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/number_theory/ArbitraryModConvolution.runtime.cpp",
+      "timeout_seconds": 60.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/number_theory/ArbitraryModConvolution.compile.cpp"
+    }
+  ]
+}
