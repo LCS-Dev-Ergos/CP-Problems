@@ -83,9 +83,12 @@
         "monoid_sparse_table",
         "heap",
         "treap",
-        "parallel_binary_search"
+        "parallel_binary_search",
+        "point_add_rectangle_sum",
+        "rectangle_add_point_sum",
+        "rectangle_add_rectangle_sum"
       ],
-      "size_kb": 21.0,
+      "size_kb": 22.7,
       "compile_time_impact": "high"
     },
     "number_theory": {
@@ -104,10 +107,12 @@
         "chinese_remainder",
         "discrete_log",
         "fwht",
+        "ntt",
+        "arbitrary_mod_convolution",
         "binomial",
         "floor_sum"
       ],
-      "size_kb": 10.3,
+      "size_kb": 10.9,
       "compile_time_impact": "low"
     },
     "geometry": {
@@ -189,5 +194,5 @@
       "compile_time_impact": "low"
     }
   },
-  "updated": "2026-08-09T12:00:00"
+  "updated": "2026-08-09T18:00:00"
 }
