@@ -1,0 +1,17 @@
+build/
+bin/
+lib/
+algorithms/
+not_passed/
+.idea/
+.cache/*
+.ide-configs/
+.statistics/
+compile_commands.json
+.clangd
+.clang-format
+.clang-tidy
+*.out
+*.exe
+*.dSYM/
+*.DS_Store
