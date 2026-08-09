@@ -1,0 +1,25 @@
+{
+  "name": "RectangleAddPointSum",
+  "header": "modules/data_structures/offline/RectangleAddPointSum.hpp",
+  "category": "data_structures",
+  "tags": [
+    "offline_query",
+    "rectangle_add",
+    "fenwick_tree",
+    "sweep_line",
+    "coordinate_compression"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/offline/RectangleAddPointSum.runtime.cpp",
+      "timeout_seconds": 40.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/offline/RectangleAddPointSum.compile.cpp"
+    }
+  ]
+}
