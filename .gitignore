@@ -358,7 +358,7 @@ $RECYCLE.BIN/
 # Custom Additions
 AGENTS.md
 
-Docs/*
+/Docs/
 Problems/*
 
 .sisyphus/*
