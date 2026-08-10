@@ -24,7 +24,7 @@ ROUND_DIR ?=
 # ── Default ───────────────────────────────────────────────────────────────────
 all: configure
 
-# ── Workspace: compile_commands.json + probe families ────────────────────────
+# ── Workspace: compile_commands.json + probe families ─────────────────-───────
 configure:
 	cmake --preset algorithms-workspace-debug
 
@@ -59,7 +59,7 @@ sanitize-probes: configure-sanitize
 timing-probes: configure-timing
 	cmake --build --preset algorithms-workspace-timing-all
 
-# ── CTest: run *.runtime.cpp probes (build them first) ───────────────────────
+# ── CTest: run *.runtime.cpp probes (build them first) ──────────────────-─────
 ctest: verify
 	ctest --preset algorithms-workspace-tests
 
@@ -77,7 +77,7 @@ check-%:
 check-report:
 	$(PYTHON) $(SCRIPTS)/module_verify.py --report reports/test_report.json
 
-# ── Diagnostics ──────────────────────────────────────────────────────────────
+# ── Diagnostics ───────────────────────────────────────────────────────-───────
 doctor:
 	$(PYTHON) $(SCRIPTS)/workflow_manager.py doctor
 
@@ -85,7 +85,7 @@ doctor:
 clean:
 	rm -rf build/workspace
 
-# ── Round build targets (require ROUND_DIR=<path>) ───────────────────────────
+# ── Round build targets (require ROUND_DIR=<path>) ────────────────────────-───
 # These targets delegate to workflow_manager.py with --cwd set to the round
 # directory. The Algorithms workspace is passed as --algorithms-dir so the
 # centralized presets and toolchain files are resolved correctly.
