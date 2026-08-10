@@ -31,11 +31,12 @@ Use when standard `cin`/`cout` is adequate and you want the minimum overhead.
 Expands to:
 
 ```cpp
-#define NEED_FAST_IO_MINIMAL
+#define NEED_FAST_IO
+#define CP_FAST_IO_VARIANT 0
 ```
 
-Pulls in: `modules/Fast_IO_Minimal.hpp`, a small shim that sets
-`CP_FAST_IO_VARIANT 0` before including `modules/Fast_IO.hpp`.
+Pulls in: `modules/Fast_IO.hpp` compiled in variant 0 — full-reload input (a
+single token must fit in the 1 MB buffer) and no extension hooks.
 
 Use when throughput matters but the compile-time checking baggage for ModInt
 and StrongType extensions is not needed.
@@ -88,9 +89,8 @@ supported and are preferable when you need a non-standard combination:
 ```
 
 Defining both `NEED_IO` and `NEED_FAST_IO` simultaneously is handled
-gracefully: `Base_profiles.hpp` automatically drops `NEED_IO` when either
-fast backend is present. If both fast backends are requested, the extended
-backend wins and `NEED_FAST_IO_MINIMAL` is dropped.
+gracefully: `Base_profiles.hpp` automatically drops `NEED_IO` when the fast
+backend is present.
 
 ## Fast_IO extension toggles
 
@@ -98,8 +98,12 @@ These can be set independently of any profile:
 
 | Macro                           | Default                            | Requirement                |
 | ------------------------------- | ---------------------------------- | -------------------------- |
-| `CP_FAST_IO_ENABLE_MODINT`      | `1` when `NEED_MOD_INT` is defined | none                       |
+| `CP_FAST_IO_ENABLE_MODINT`      | `1` when `NEED_MOD_INT` is defined | `CP_FAST_IO_VARIANT == 1`  |
 | `CP_FAST_IO_ENABLE_STRONG_TYPE` | `0`                                | requires `CP_USE_ADVANCED` |
+
+`CP_FAST_IO_ENABLE_STRONG_TYPE` is consumed by `Base.hpp`, not by
+`modules/Fast_IO.hpp`: the extension lives in `advanced/` and only the top-level
+header may include that layer.
 
 Set them to `0` before the include to suppress a specific extension even when
 its parent feature is active:
