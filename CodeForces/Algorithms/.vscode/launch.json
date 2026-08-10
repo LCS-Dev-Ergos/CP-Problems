@@ -1,5 +1,5 @@
 {
-  //===-------------------------------------------------------------------------===//
+  //===--------------------------------------------------------------------===//
   // VS Code debug profiles for Competitive Programming workspaces.
   //
   // Notes:
@@ -10,7 +10,7 @@
   // Clang paths (macOS primary):
   // - "Clang Debug"    -> -g2 -O0, full LLDB step-through, no sanitizers
   // - "Clang Sanitize" ->  -g -O1, ASan/UBSan active; variables may be optimized away
-  //===-------------------------------------------------------------------------===//
+  //===--------------------------------------------------------------------===//
   "version": "0.2.0",
   "configurations": [
     {
@@ -21,14 +21,8 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build: Active File (Debug)",
-      "stdio": [
-        "${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in",
-        null,
-        null
-      ],
-      "sourceLanguages": [
-        "cpp"
-      ],
+      "stdio": ["${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in", null, null],
+      "sourceLanguages": ["cpp"],
       "terminal": "integrated",
       "stopOnEntry": false,
       "initCommands": [
@@ -42,14 +36,10 @@
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
-      "args": [
-        "${input:debugArgs}"
-      ],
+      "args": ["${input:debugArgs}"],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build: Active File (Debug)",
-      "sourceLanguages": [
-        "cpp"
-      ],
+      "sourceLanguages": ["cpp"],
       "terminal": "integrated",
       "stopOnEntry": false,
       "initCommands": [
@@ -66,14 +56,8 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build: Active File (Debug, Clang)",
-      "stdio": [
-        "${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in",
-        null,
-        null
-      ],
-      "sourceLanguages": [
-        "cpp"
-      ],
+      "stdio": ["${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in", null, null],
+      "sourceLanguages": ["cpp"],
       "terminal": "integrated",
       "stopOnEntry": false,
       "initCommands": [
@@ -90,14 +74,8 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build: Active File (Sanitize, Clang)",
-      "stdio": [
-        "${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in",
-        null,
-        null
-      ],
-      "sourceLanguages": [
-        "cpp"
-      ],
+      "stdio": ["${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in", null, null],
+      "sourceLanguages": ["cpp"],
       "terminal": "integrated",
       "stopOnEntry": false,
       "env": {
@@ -120,14 +98,8 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build: Active File (Sanitize, Auto OS)",
-      "stdio": [
-        "${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in",
-        null,
-        null
-      ],
-      "sourceLanguages": [
-        "cpp"
-      ],
+      "stdio": ["${workspaceFolder}/input_cases/${fileBasenameNoExtension}.in", null, null],
+      "sourceLanguages": ["cpp"],
       "terminal": "integrated",
       "stopOnEntry": false,
       "env": {

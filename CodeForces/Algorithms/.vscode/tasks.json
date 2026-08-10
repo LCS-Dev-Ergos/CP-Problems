@@ -1,17 +1,17 @@
 {
-  //===-------------------------------------------------------------------------===//
+  //===--------------------------------------------------------------------===//
   // VS Code tasks for Competitive Programming (CP-first workflow).
   //
   // Design goals:
   //  - keep tasks aligned with cpptools as the canonical interface
   //  - keep sanitizer logic centralized and OS-aware via helper script
-  //===-------------------------------------------------------------------------===//
+  //===--------------------------------------------------------------------===//
   "version": "2.0.0",
   "options": {
     "cwd": "${workspaceFolder}"
   },
   "tasks": [
-    //===-------------------------------- BUILD --------------------------------===//
+    //===----------------------------- BUILD ------------------------------===//
     {
       "label": "Build: Active File (Debug)",
       "type": "shell",
@@ -85,7 +85,7 @@
       "detail": "Build with sanitizer profile using GCC. Linux-only; macOS is explicitly blocked."
     },
 
-    //===---------------------------- RUN AND TEST -----------------------------===//
+    //===-------------------------- RUN AND TEST --------------------------===//
     {
       "label": "Run: Build and Run Active File",
       "type": "shell",
@@ -251,7 +251,7 @@
       "detail": "Run stress test under sanitizer instrumentation."
     },
 
-    //===----------------------------- SUBMISSION ------------------------------===//
+    //===--------------------------- SUBMISSION ---------------------------===//
     {
       "label": "Submit: Generate Active File (Strict)",
       "type": "shell",
@@ -298,7 +298,7 @@
       "detail": "Judge, generate strict submission, then test strict submission end-to-end."
     },
 
-    //===----------------------- CONFIGURATION AND CLEAN -----------------------===//
+    //===-------------------- CONFIGURATION AND CLEAN ---------------------===//
     {
       "label": "Configure: Debug (Auto Compiler)",
       "type": "shell",

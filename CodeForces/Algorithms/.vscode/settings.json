@@ -1,14 +1,14 @@
 {
-  //===------------- VS CODE SETTINGS FOR COMPETITIVE PROGRAMMING --------------===//
+  //===---------- VS CODE SETTINGS FOR COMPETITIVE PROGRAMMING ------------===//
 
-  //===------------ Editor Configuration -------------===//
+  //===----- Editor Configuration ----------------===//
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.wordWrap": "off",
   "editor.minimap.enabled": false,
   "editor.lineNumbers": "on",
-  "editor.rulers": [85, 120],
+  "editor.rulers": [80, 120],
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": true,
 
@@ -22,13 +22,13 @@
   "editor.acceptSuggestionOnEnter": "on",
   "editor.suggestOnTriggerCharacters": true,
 
-  //===------------- C/C++ Configuration -------------===//
+  //===----- C/C++ Configuration -----------------===//
   "C_Cpp.intelliSenseEngine": "disabled",
   "C_Cpp.autocomplete": "disabled",
   "C_Cpp.errorSquiggles": "disabled",
   "C_Cpp.configurationWarnings": "disabled",
 
-  //===------------ Clangd Configuration -------------===//
+  //===----- Clangd Configuration ----------------===//
   "clangd.onConfigChanged": "restart",
   "clangd.arguments": [
     "--all-scopes-completion",
@@ -44,7 +44,7 @@
   "cmake.configureOnOpen": false,
   "cmake.buildBeforeRun": false,
 
-  //===--------- Build and Run Configuration ---------===//
+  //===----- Build and Run Configuration ---------===//
   "code-runner.executorMap": {
     "cpp": "cd \"$workspaceRoot\" && cpptools go $fileNameWithoutExt"
   },
@@ -52,33 +52,33 @@
   "code-runner.saveFileBeforeRun": true,
   "code-runner.clearPreviousOutput": true,
 
-  //===----------- Terminal Configuration ------------===//
+  //===----- Terminal Configuration --------------===//
   "terminal.integrated.cwd": "${workspaceFolder}",
 
-  //===------ Competitive Programming Specific -------===//
+  //===----- Competitive Programming Specific ----===//
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
   "editor.formatOnSave": true,
   "editor.trimAutoWhitespace": true,
 
-  //===--------- Language Server Priorities ----------===//
+  //===----- Language Server Priorities ----------===//
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format",
     "editor.semanticHighlighting.enabled": true
   },
 
-  //===---------- Problem Solving Workflow -----------===//
+  //===----- Problem Solving Workflow ------------===//
   "workbench.editor.enablePreview": false, // Always open new tabs
   "workbench.editor.showTabs": "multiple",
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
 
-  //===------------- Debug Configuration -------------===//
+  //===----- Debug Configuration -----------------===//
   "debug.console.fontSize": 13,
   "debug.internalConsoleOptions": "openOnSessionStart",
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json",
 
-  //===-------------- Files and Search ---------------===//
+  //===----- Files and Search --------------------===//
   "files.exclude": {
     "**/.git": true,
     "**/.DS_Store": true,
@@ -92,7 +92,7 @@
     "**/*.o": true
   },
 
-  //===-------------- File Associations --------------===//
+  //===----- File Associations -------------------===//
   "files.associations": {
     ".als.json": "jsonc",
     "*.c": "c",
