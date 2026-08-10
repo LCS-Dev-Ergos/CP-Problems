@@ -4,6 +4,14 @@
 //===----------------------------------------------------------------------===//
 /* Policy-Based Data Structures (optional) */
 
+// Without this, a missing pb_ds surfaces as "ordered_set was not declared".
+#if !defined(PBDS_AVAILABLE) || !PBDS_AVAILABLE
+  #ifndef CP_ALLOW_MISSING_PBDS
+    #error "NEED_PBDS was requested but <ext/pb_ds/...> is unavailable on this toolchain (libstdc++ only). \
+            Build with GCC, drop NEED_PBDS, or define CP_ALLOW_MISSING_PBDS."
+  #endif
+#endif
+
 #if defined(PBDS_AVAILABLE) && PBDS_AVAILABLE
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>

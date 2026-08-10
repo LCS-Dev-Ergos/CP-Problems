@@ -28,7 +28,7 @@ from flattener_core.lexer import extract_identifiers, strip_non_code
 from flattener_core.symbols import collect_module_leaf_trigger_tokens
 from flattener_pipeline.context import FlattenContext, FlattenerMode, ValidationStatus
 from flattener_pipeline.formatting import reindent_with_clang_format
-from flattener_pipeline.macros import COMPOSITE_IO_TRIGGER_TOKENS, extract_macro_values_from_source
+from flattener_pipeline.macros import extract_macro_values_from_source
 from flattener_pipeline.pipeline import build_flattened_output
 from flattener_pipeline.submission import prepare_submission_output
 from flattener_pipeline.validation import (
@@ -119,8 +119,6 @@ def _build_flatten_context(args: argparse.Namespace) -> tuple[FlattenContext, Fl
     )
 
     used_identifiers = frozenset(extract_identifiers(source_content))
-    if used_identifiers & COMPOSITE_IO_TRIGGER_TOKENS:
-        macro_values["CP_IO_ENABLE_COMPOSITE"] = 1
 
     # Flattened output is always a standalone judge submission (never the
     # PCH/workspace build), so enable architecture-target pragmas; they stay

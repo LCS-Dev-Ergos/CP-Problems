@@ -1,5 +1,5 @@
 #pragma once
-#include "Concepts.hpp"
+#include "templates/advanced/Concepts.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Strong Nominal Typing Utility */
@@ -181,7 +181,7 @@ template <class Tag, class T>
   return StrongType<U, Tag>(std::forward<T>(value));
 }
 
-template <NonBoolIntegral T, class Tag>
+template <NonBoolInt T, class Tag>
 using StrongInt = StrongType<T, Tag>;
 
 } // namespace cp

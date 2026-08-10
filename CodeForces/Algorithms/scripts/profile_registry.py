@@ -25,13 +25,11 @@ DEFAULT_PROFILES_PATH = TEMPLATES_DIR / "profiles.toml"
 
 NEED_IO = "NEED_IO"
 NEED_FAST_IO = "NEED_FAST_IO"
-NEED_FAST_IO_MINIMAL = "NEED_FAST_IO_MINIMAL"
 
 # ``target`` is removed when any blocker is present. The same rules drive
 # Python-side flattening and generated C++ profile normalization.
 NEED_SHADOW_RULES: tuple[tuple[str, frozenset[str]], ...] = (
-    (NEED_IO, frozenset({NEED_FAST_IO, NEED_FAST_IO_MINIMAL})),
-    (NEED_FAST_IO_MINIMAL, frozenset({NEED_FAST_IO})),
+    (NEED_IO, frozenset({NEED_FAST_IO})),
 )
 
 
@@ -90,6 +88,14 @@ class FeatureProfile:
 
 
 @dataclass(frozen=True, slots=True)
+class ToolingConfig:
+    """Compiler selection for the probe/verification tooling."""
+
+    compiler: str | None
+    compiler_flags: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ConfigDefaults:
     """Base and strict-profile ``CP_*`` default values."""
 
@@ -106,6 +112,7 @@ class ProfileRegistry:
     features: Mapping[str, FeatureProfile]
     scaffolds: Mapping[str, ScaffoldProfile]
     defaults: ConfigDefaults
+    tooling: ToolingConfig
 
     def expand_io(self, name: str) -> tuple[frozenset[str], dict[str, int]]:
         """Return the direct ``NEED_*`` and ``CP_*`` defines for one IO profile."""
@@ -238,6 +245,24 @@ def _bool_field(
     return value
 
 
+def _tooling(payload: object) -> ToolingConfig:
+    """Build a validated :class:`ToolingConfig` from the ``[tooling]`` table."""
+
+    if payload is None:
+        return ToolingConfig(compiler=None, compiler_flags=())
+    if not isinstance(payload, dict):
+        raise ValueError("tooling: expected a table")
+
+    compiler = payload.get("compiler", "")
+    if not isinstance(compiler, str):
+        raise ValueError("tooling.compiler: expected string")
+
+    return ToolingConfig(
+        compiler=compiler.strip() or None,
+        compiler_flags=_str_list(payload.get("compiler_flags", []), where="tooling.compiler_flags"),
+    )
+
+
 def _io(name: str, payload: dict[str, Any]) -> IOProfile:
     """Build a validated :class:`IOProfile` from one TOML table."""
 
@@ -350,6 +375,7 @@ def _build(payload: dict[str, Any]) -> ProfileRegistry:
         features=features,
         scaffolds=scaffolds,
         defaults=defaults,
+        tooling=_tooling(payload.get("tooling")),
     )
 
 

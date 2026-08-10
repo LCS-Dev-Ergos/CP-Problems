@@ -2,8 +2,8 @@
 
 This module owns the public API that ``module_tester`` and ``module_verify``
 were previously sharing through underscore-prefixed cross-imports. Anything
-that touches ``.template_config.json`` or selects the C++ compiler used to
-build template/module probes lives here.
+that reads the ``[tooling]`` table of ``templates/profiles.toml`` or selects
+the C++ compiler used to build template/module probes lives here.
 
 The ``Compiler`` Protocol gives downstream code a narrow seam for unit tests
 that want to swap in a stub instead of spawning ``g++``.
@@ -12,15 +12,15 @@ that want to swap in a stub instead of spawning ``g++``.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, TypedDict, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from _lib.process import ProcessRequest, run_capture
+from profile_registry import ToolingConfig, load_registry
 
 __all__ = [
     "DEFAULT_PROBE_JOBS",
@@ -29,10 +29,10 @@ __all__ = [
     "CompilationOutcome",
     "Compiler",
     "CompilerInvocation",
-    "TemplateConfigPayload",
+    "ToolingConfig",
     "build_compiler_flags",
     "compiler_supports_std_headers",
-    "load_template_config",
+    "load_tooling_config",
     "parse_jobs_argument",
     "select_compiler",
 ]
@@ -59,13 +59,6 @@ def parse_jobs_argument(raw: str) -> int:
     if parsed < 1:
         raise argparse.ArgumentTypeError(f"expected a positive integer for --jobs, got {parsed}")
     return parsed
-
-
-class TemplateConfigPayload(TypedDict, total=False):
-    """Validated subset of `.template_config.json` consumed by the tester."""
-
-    compiler: str
-    compiler_flags: list[str]
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,42 +130,33 @@ class CompilerInvocation:
             )
 
 
-def load_template_config(templates_dir: Path) -> TemplateConfigPayload:
-    """Load and lightly validate `.template_config.json` if present."""
+_FALLBACK_TOOLING = ToolingConfig(compiler=None, compiler_flags=())
 
-    config_path = templates_dir.parent / ".template_config.json"
-    if not config_path.is_file():
-        return {}
 
+def load_tooling_config(templates_dir: Path | None = None) -> ToolingConfig:
+    """Read the ``[tooling]`` table from ``profiles.toml``.
+
+    ``templates_dir`` lets callers point at a non-default template tree; an
+    unreadable or malformed registry degrades to auto-detection rather than
+    aborting a verification run.
+    """
+
+    path = str(templates_dir / "profiles.toml") if templates_dir is not None else None
     try:
-        payload = json.loads(config_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-    if not isinstance(payload, dict):
-        return {}
-
-    config: TemplateConfigPayload = {}
-    compiler = payload.get("compiler")
-    if isinstance(compiler, str) and compiler.strip():
-        config["compiler"] = compiler.strip()
-
-    compiler_flags = payload.get("compiler_flags")
-    if isinstance(compiler_flags, list) and all(isinstance(flag, str) for flag in compiler_flags):
-        config["compiler_flags"] = list(compiler_flags)
-
-    return config
+        return load_registry(path).tooling
+    except (OSError, ValueError):
+        return _FALLBACK_TOOLING
 
 
-def build_compiler_flags(config: TemplateConfigPayload) -> tuple[str, ...]:
-    """Build compiler flags from config plus tester defaults."""
+def build_compiler_flags(config: ToolingConfig) -> tuple[str, ...]:
+    """Build compile-only probe flags from the registry plus tester defaults."""
 
-    config_flags = list(config.get("compiler_flags", ()))
-    if not any(flag.startswith("-std=") for flag in config_flags):
-        config_flags.insert(0, "-std=c++23")
-    if "-fsyntax-only" not in config_flags:
-        config_flags.append("-fsyntax-only")
-    return tuple(config_flags)
+    flags = list(config.compiler_flags)
+    if not any(flag.startswith("-std=") for flag in flags):
+        flags.insert(0, "-std=c++23")
+    if "-fsyntax-only" not in flags:
+        flags.append("-fsyntax-only")
+    return tuple(flags)
 
 
 def compiler_supports_std_headers(compiler: str) -> bool:
@@ -196,7 +180,7 @@ def compiler_supports_std_headers(compiler: str) -> bool:
         return not result.timed_out and result.returncode == 0
 
 
-def select_compiler(config: TemplateConfigPayload) -> str:
+def select_compiler(config: ToolingConfig) -> str:
     """Pick the most suitable compiler for CP templates.
 
     Order: configured override → known modern g++ variants → fallback ``c++``.
@@ -204,7 +188,7 @@ def select_compiler(config: TemplateConfigPayload) -> str:
     ensure ``<bits/stdc++.h>`` is available — the C++ codebase relies on it.
     """
 
-    configured = config.get("compiler")
+    configured = config.compiler
     candidates: list[str | None] = [configured, *_COMPILER_CANDIDATES]
     seen: set[str] = set()
     for candidate in candidates:

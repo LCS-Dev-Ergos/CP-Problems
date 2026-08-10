@@ -1,10 +1,10 @@
 #pragma once
-#include "core/Preamble.hpp"
+#include "templates/core/Preamble.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Modular Inclusions Based on Requirements */
 
-#include "Base_profiles.hpp"
+#include "templates/Base_profiles.hpp"
 
 // Type-safety utilities (concepts, strong types, cast wrappers) are an opt-in layer.
 // Define CP_USE_ADVANCED to 1 before including this header to enable them (it is a
@@ -15,12 +15,16 @@
 #endif
 
 #if CP_USE_ADVANCED
-  #include "advanced/Cast.hpp"
-  #include "advanced/Concepts.hpp"
-  #include "advanced/Strong_Type.hpp"
+  #include "templates/advanced/Cast.hpp"
+  #include "templates/advanced/Concepts.hpp"
+  #include "templates/advanced/Strong_Type.hpp"
+  // Wired here, not in Fast_IO.hpp: only this layer may include advanced/.
+  #if defined(CP_FAST_IO_ENABLE_STRONG_TYPE) && CP_FAST_IO_ENABLE_STRONG_TYPE
+    #include "templates/advanced/Fast_IO_Ext_StrongType.hpp"
+  #endif
 #endif
 
-#include "Base_features.hpp"
+#include "templates/Base_features.hpp"
 
 // Namespace usage.
 #if CP_USE_GLOBAL_STD_NAMESPACE

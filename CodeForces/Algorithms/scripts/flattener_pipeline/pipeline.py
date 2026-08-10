@@ -154,7 +154,7 @@ def _render_template_bundle(
         ctx.source_content, ctx.need_mapping.keys(), warn_stream=sys.stderr
     )
     effective_macro_values: MacroValueMap = dict(ctx.macro_values)
-    if "NEED_FAST_IO" in need_macros_found or "NEED_FAST_IO_MINIMAL" in need_macros_found:
+    if "NEED_FAST_IO" in need_macros_found:
         effective_macro_values["CP_FAST_IO_NAMESPACE_DEFINED"] = 1
 
     files_to_include = _collect_needed_template_headers(

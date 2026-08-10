@@ -19,10 +19,7 @@
   #error "Fast_IO.hpp must be included before IO.hpp when both I/O backends are used."
 #endif
 
-#include "Fast_IO_Fwd.hpp"
-#if CP_IO_ENABLE_COMPOSITE
-  #include "templates/core/ContainerAliases.hpp"
-#endif
+#include "templates/modules/Fast_IO_Fwd.hpp"
 
 namespace fast_io {
 
@@ -104,8 +101,10 @@ inline void read_char(char& c) {
   } while (c <= ' ' && c != 0);
 }
 
+// Accumulates unsigned: an out-of-range token wraps instead of being UB.
 template <typename T>
 inline void read_integer(T& x) {
+  using U = cp::make_unsigned_t<T>;
   char c;
   do {
     c = next_input_char();
@@ -119,15 +118,16 @@ inline void read_integer(T& x) {
     }
   }
 
-  x = 0;
+  U value = 0;
   while (c > ' ') {
-    x = x * 10 + (c - '0');
+    value = as<U>(value * 10 + as<U>(c - '0'));
     c = next_input_char();
   }
 
   if constexpr (cp::Signed<T>) {
-    if (negative)
-      x = -x;
+    x = as<T>(negative ? as<U>(U(0) - value) : value);
+  } else {
+    x = as<T>(value);
   }
 }
 
@@ -224,28 +224,6 @@ inline void write_integer(T x) {
   output_pos += len;
 }
 
-#ifndef CP_FLOAT_PRECISION
-  #define CP_FLOAT_PRECISION 10
-#endif
-
-template <typename T>
-inline void write_floating(T x) {
-  char local_buffer[128];
-  const int n = std::snprintf(local_buffer, sizeof(local_buffer), "%.*Lf", CP_FLOAT_PRECISION, as<F80>(x));
-  if (n <= 0)
-    return;
-
-  U32 len = as<U32>(std::min(n, as<int>(sizeof(local_buffer) - 1)));
-  if (output_pos + len >= BUFFER_SIZE)
-    flush_output();
-  if (len >= BUFFER_SIZE) {
-    std::fwrite(local_buffer, 1, len, stdout);
-    return;
-  }
-  std::memcpy(output_buffer + output_pos, local_buffer, len);
-  output_pos += len;
-}
-
 inline void write_char(char c) {
   if (output_pos >= BUFFER_SIZE)
     flush_output();
@@ -265,6 +243,28 @@ inline void write_string(std::string_view s) {
     data += chunk;
     remaining -= chunk;
   }
+}
+
+#ifndef CP_FLOAT_PRECISION
+  #define CP_FLOAT_PRECISION 10
+#endif
+
+// A large F80 can need thousands of digits; retry on the heap, never truncate.
+template <typename T>
+inline void write_floating(T x) {
+  char local_buffer[512];
+  int n = std::snprintf(local_buffer, sizeof(local_buffer), "%.*Lf", CP_FLOAT_PRECISION, as<F80>(x));
+  if (n <= 0)
+    return;
+  if (as<Size>(n) < sizeof(local_buffer)) {
+    write_string(std::string_view(local_buffer, as<Size>(n)));
+    return;
+  }
+
+  std::string spill(as<Size>(n) + 1, '\0');
+  n = std::snprintf(spill.data(), spill.size(), "%.*Lf", CP_FLOAT_PRECISION, as<F80>(x));
+  if (n > 0)
+    write_string(std::string_view(spill.data(), as<Size>(n)));
 }
 
 template <FastIntegral T>
@@ -290,19 +290,8 @@ inline void write(const char* x) { write_string(x); }
     #endif
   #endif
 
-  #ifndef CP_FAST_IO_ENABLE_STRONG_TYPE
-    #define CP_FAST_IO_ENABLE_STRONG_TYPE 0
-  #endif
-  #if CP_FAST_IO_ENABLE_STRONG_TYPE && !CP_USE_ADVANCED
-    #undef CP_FAST_IO_ENABLE_STRONG_TYPE
-    #define CP_FAST_IO_ENABLE_STRONG_TYPE 0
-  #endif
-
   #if CP_FAST_IO_ENABLE_MODINT
-    #include "Fast_IO_Ext_ModInt.hpp"
-  #endif
-  #if CP_FAST_IO_ENABLE_STRONG_TYPE
-    #include "templates/advanced/Fast_IO_Ext_StrongType.hpp"
+    #include "templates/modules/Fast_IO_Ext_ModInt.hpp"
   #endif
 #endif // CP_FAST_IO_VARIANT == 1
 
@@ -310,7 +299,7 @@ namespace fast_io {
 
 #if CP_IO_ENABLE_COMPOSITE
   #define CP_IO_COMPOSITE_CONTEXT 1
-  #include "IO_Composite.hpp"
+  #include "templates/modules/IO_Composite.hpp"
   #undef CP_IO_COMPOSITE_CONTEXT
 #endif
 
@@ -369,4 +358,4 @@ inline IOFlusher io_flusher;
 #define CP_IO_IMPL_WRITELN(...) fast_io::writeln(__VA_ARGS__)
 #define CP_IO_IMPL_FLUSH() fast_io::flush_output()
 
-#include "IO_Defs.hpp"
+#include "templates/modules/IO_Defs.hpp"

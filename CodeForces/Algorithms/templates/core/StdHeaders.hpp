@@ -1,13 +1,12 @@
 #pragma once
-#include "Config.hpp"
+#include "templates/core/Config.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Standard Library Includes */
 
+// Config.hpp already downgraded the flag when <bits/stdc++.h> is unreachable.
 #if CP_USE_BITS_HEADER
   #include <bits/stdc++.h>
-#endif
-
-#if !CP_USE_BITS_HEADER
-  #include "PortableStdHeaders.hpp"
+#else
+  #include "templates/core/PortableStdHeaders.hpp"
 #endif

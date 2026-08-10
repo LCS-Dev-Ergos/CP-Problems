@@ -1,9 +1,5 @@
 #pragma once
-#include "templates/core/TypeTraits.hpp"
-
-#if CP_USE_ADVANCED
-  #include "templates/core/IdiomAliases.hpp"
-#endif
+#include "templates/core/IdiomAliases.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Randomized Hash Utilities (anti-collision for unordered containers) */
@@ -21,14 +17,16 @@ namespace cp::hashing {
 #ifdef CP_SEED
   static U64 seed = U64(CP_SEED);
 #else
-  static U64 seed = U64(std::chrono::steady_clock::now().time_since_epoch().count());
+  // Clock alone is guessable by an anti-hash test.
+  static U64 seed = U64(std::chrono::steady_clock::now().time_since_epoch().count())
+                    ^ (U64(std::random_device{}()) * 0x9e37'79b9'7f4a'7c15ULL);
 #endif
   return seed;
 }
 
 [[gnu::always_inline]] inline U64 fixed_random_seed() noexcept { return fixed_random_seed_storage(); }
 
-inline void reseed(U64 seed) noexcept { fixed_random_seed_storage() = seed; }
+inline void set_seed(U64 seed) noexcept { fixed_random_seed_storage() = seed; }
 
 [[nodiscard]] constexpr inline U64 hash_combine(U64 lhs, U64 rhs) noexcept {
   return lhs ^ (rhs + 0x9e37'79b9'7f4a'7c15ULL + (lhs << 6) + (lhs >> 2));
@@ -37,25 +35,14 @@ inline void reseed(U64 seed) noexcept { fixed_random_seed_storage() = seed; }
 template <class T>
 [[gnu::always_inline]] inline U64 raw_hash(const T& value) noexcept {
   using U = cp::remove_cvref_t<T>;
-#if CP_USE_ADVANCED
   if constexpr (Int<U>)
     return U64(value);
   else if constexpr (Enum<U>)
     return U64(std::underlying_type_t<U>(value));
-  else if constexpr (Hashable<U>)
-    return U64(std::hash<U>{}(value));
   else {
-    static_assert(Hashable<U>, "raw_hash(): type is not hashable; provide std::hash specialization.");
-    return 0;
-  }
-#else
-  if constexpr (std::is_integral_v<U>)
-    return U64(value);
-  else if constexpr (std::is_enum_v<U>)
-    return U64(std::underlying_type_t<U>(value));
-  else
+    static_assert(Hashable<U>, "raw_hash(): type is not hashable; provide a std::hash specialization.");
     return U64(std::hash<U>{}(value));
-#endif
+  }
 }
 
 template <class T>

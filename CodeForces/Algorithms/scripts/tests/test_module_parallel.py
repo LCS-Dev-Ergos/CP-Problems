@@ -134,7 +134,7 @@ class ParallelTesterExecutionTests(unittest.TestCase):
         tester = module_tester.ModuleTester.__new__(module_tester.ModuleTester)
         tester.templates_dir = SCRIPTS_DIR
         tester.test_results = []
-        tester.config = {}
+        tester.config = module_runtime.ToolingConfig(compiler=None, compiler_flags=())
         tester.compiler = "g++"
         tester.compiler_flags = ()
         tester.need_mapping = {"NEED_CORE": []}

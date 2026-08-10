@@ -41,17 +41,7 @@ def _render_config_defaults(registry: ProfileRegistry) -> str:
     lines.append("")
     for macro, value in registry.defaults.base.items():
         lines += [f"#ifndef {macro}", f"  #define {macro} {value}", "#endif"]
-    lines += [
-        "",
-        "#ifndef CP_IO_ENABLE_COMPOSITE",
-        "  #if CP_ENABLE_LEGACY_IO_VEC_MACROS",
-        "    #define CP_IO_ENABLE_COMPOSITE 1",
-        "  #else",
-        "    #define CP_IO_ENABLE_COMPOSITE 0",
-        "  #endif",
-        "#endif",
-        "",
-    ]
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -90,9 +80,9 @@ def _render_base_profiles(registry: ProfileRegistry) -> str:
 
 
 def _include_line(header: str) -> str:
-    """Render one project-local include directive."""
+    """Render one project-local include directive, rooted at the repo."""
 
-    return f'  #include "{header}"'
+    return f'  #include "templates/{header}"'
 
 
 def _render_base_features(registry: ProfileRegistry) -> str:
@@ -106,7 +96,7 @@ def _render_base_features(registry: ProfileRegistry) -> str:
         for group in feature.conditional_headers:
             lines.append(f"  #if {group.condition}")
             for header in group.headers:
-                lines.append(f"    #include \"{header}\"")
+                lines.append("  " + _include_line(header))
             lines.append("  #endif")
         lines += ["#endif", ""]
     return "\n".join(lines)

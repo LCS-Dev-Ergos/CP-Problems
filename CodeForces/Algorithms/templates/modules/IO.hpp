@@ -1,11 +1,6 @@
 #pragma once
 #include "templates/core/ScalarTypes.hpp"
 
-#if CP_IO_ENABLE_COMPOSITE
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/core/Macros.hpp"
-#endif
-
 //===----------------------------------------------------------------------===//
 /* Lightweight I/O Utilities */
 
@@ -33,7 +28,7 @@ void write(const T& x) { std::cout << x; }
 
 #if CP_IO_ENABLE_COMPOSITE
   #define CP_IO_COMPOSITE_CONTEXT 1
-  #include "IO_Composite.hpp"
+  #include "templates/modules/IO_Composite.hpp"
   #undef CP_IO_COMPOSITE_CONTEXT
 #endif
 
@@ -103,4 +98,4 @@ using cp_io::writeln;
   #define CP_IO_IMPL_FLUSH() std::cout.flush()
 #endif
 
-#include "IO_Defs.hpp"
+#include "templates/modules/IO_Defs.hpp"

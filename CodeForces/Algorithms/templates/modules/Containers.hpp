@@ -1,18 +1,43 @@
 #pragma once
 #include "templates/core/ContainerAliases.hpp"
+#include "templates/core/IdiomAliases.hpp"
 #include "templates/core/Macros.hpp"
-
-#if CP_USE_ADVANCED
-  #include "templates/core/IdiomAliases.hpp"
-#endif
 
 //===----------------------------------------------------------------------===//
 /* Container Utilities and Algorithms */
 
+template <class T>
+auto make_vec2(Size n1, Size n2) {
+  return Vec(n1, Vec<T>(n2));
+}
+
+template <class T>
+auto make_vec2(Size n1, Size n2, const T& value) {
+  return Vec(n1, Vec<T>(n2, value));
+}
+
+template <class T>
+auto make_vec3(Size n1, Size n2, Size n3) {
+  return Vec(n1, Vec(n2, Vec<T>(n3)));
+}
+
+template <class T>
+auto make_vec3(Size n1, Size n2, Size n3, const T& value) {
+  return Vec(n1, Vec(n2, Vec<T>(n3, value)));
+}
+
+template <class T>
+auto make_vec4(Size n1, Size n2, Size n3, Size n4) {
+  return Vec(n1, Vec(n2, Vec(n3, Vec<T>(n4))));
+}
+
+template <class T>
+auto make_vec4(Size n1, Size n2, Size n3, Size n4, const T& value) {
+  return Vec(n1, Vec(n2, Vec(n3, Vec<T>(n4, value))));
+}
+
 template <typename F>
-#if CP_USE_ADVANCED
   requires cp::Predicate<F&, I64>
-#endif
 I64 binary_search(F&& predicate, I64 left, I64 right) {
   my_assert(left < right);
   while (left + 1 < right) {
@@ -23,9 +48,7 @@ I64 binary_search(F&& predicate, I64 left, I64 right) {
 }
 
 template <typename F>
-#if CP_USE_ADVANCED
   requires cp::Predicate<F&, F64>
-#endif
 F64 binary_search_real(F&& predicate, F64 left, F64 right, I32 iterations = 100) {
   for (I32 i = 0; i < iterations; ++i) {
     F64 mid = left + (right - left) / 2;
@@ -131,6 +154,14 @@ template <typename T>
 T pop_val(Queue<T>& container) {
   my_assert(!container.empty());
   T element = std::move(container.front());
+  container.pop();
+  return element;
+}
+
+template <typename T>
+T pop_val(Stack<T>& container) {
+  my_assert(!container.empty());
+  T element = std::move(container.top());
   container.pop();
   return element;
 }

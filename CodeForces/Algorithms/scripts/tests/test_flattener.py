@@ -167,11 +167,11 @@ class FlattenerAuditTests(unittest.TestCase):
             #include "templates/Base.hpp"
             """
         )
-        known = {"NEED_CORE", "NEED_IO", "NEED_FAST_IO", "NEED_FAST_IO_MINIMAL", "NEED_MOD_INT"}
+        known = {"NEED_CORE", "NEED_IO", "NEED_FAST_IO", "NEED_MOD_INT"}
 
         found = extract_need_macros_from_source(source, known)
 
-        self.assertEqual(found, {"NEED_FAST_IO_MINIMAL"})
+        self.assertEqual(found, {"NEED_FAST_IO"})
 
     def test_extract_need_macros_handles_values_undef_and_comments(self) -> None:
         source = textwrap.dedent(
@@ -378,8 +378,8 @@ class FlattenerAuditTests(unittest.TestCase):
         prefix = extract_prefix_before_base_include(source)
         values = extract_macro_values_from_source(prefix, strict_profile_enabled=False)
 
-        self.assertEqual(values.get("NEED_FAST_IO_MINIMAL"), 1)
-        self.assertNotIn("NEED_FAST_IO", values)
+        self.assertEqual(values.get("NEED_FAST_IO"), 1)
+        self.assertEqual(values.get("CP_FAST_IO_VARIANT"), 0)
         self.assertNotIn("NEED_MOD_INT", values)
 
     def test_fold_simple_conditionals_supports_numeric_literals(self) -> None:
@@ -693,10 +693,16 @@ class FlattenerAuditTests(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, msg=result.stderr)
-            self.assertIn(
-                "} // namespace cp\n\n//===----------------------------------------------------------------------===//\n/* Integer Mathematical Utilities */",
-                result.stdout,
+            banner = (
+                "//===----------------------------------------------------------------------===//"
             )
+            # Every nested section banner must be preceded by exactly one blank line.
+            for section in (
+                "/* Core Concept Vocabulary */",
+                "/* Integer Mathematical Utilities */",
+            ):
+                self.assertIn(f"\n\n{banner}\n{section}", result.stdout)
+                self.assertNotIn(f"\n\n\n{banner}\n{section}", result.stdout)
 
     def test_default_submission_headers_use_bits_without_portable_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

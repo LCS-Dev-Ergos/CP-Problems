@@ -35,15 +35,12 @@ RANDOM_HPP = "Random.hpp"
 TIMER_HPP = "Timer.hpp"
 IO_DEFS_HPP = "IO_Defs.hpp"
 IO_HPP = "IO.hpp"
-IO_COMPOSITE_HPP = "IO_Composite.hpp"
 FAST_IO_HPP = "Fast_IO.hpp"
-FAST_IO_MINIMAL_HPP = "Fast_IO_Minimal.hpp"
 FAST_IO_EXT_MOD_INT_HPP = "Fast_IO_Ext_ModInt.hpp"
 FAST_IO_EXT_STRONG_TYPE_HPP = "Fast_IO_Ext_StrongType.hpp"
 PBDS_HPP = "PBDS.hpp"
 BIT_OPS_HPP = "Bit_Ops.hpp"
 CONTAINERS_HPP = "Containers.hpp"
-NDVEC_HPP = "NdVec.hpp"
 MOD_INT_HPP = "Mod_Int.hpp"
 CONCEPTS_HPP = "Concepts.hpp"
 CAST_HPP = "Cast.hpp"
@@ -68,11 +65,11 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "PairI32", "PairI64", "PairF80", "VecPair", "VecPairI32", "VecPairI64",
     },
     TYPE_TRAITS_HPP: {
-        "remove_cvref_t", "make_unsigned_t",
+        "remove_cvref_t", "make_unsigned_t", "as", "sz64", "sz32", "loop_t",
     },
     IDIOM_ALIASES_HPP: {
-        "cvref_t", "Same", "Int", "Float", "Signed", "Unsigned", "Conditional",
-        "Enum", "Predicate", "Hashable",
+        "Same", "Int", "Float", "Signed", "Unsigned", "NonBoolInt", "Arithmetic",
+        "Conditional", "Enum", "Predicate", "Hashable",
     },
     TYPES_HPP: {
         "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64", "I128", "U128",
@@ -93,11 +90,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "FOR", "FOR_R", "ALL", "RALL", "all",
         "rall", "sz", "len", "eb", "elif",
         "UNIQUE", "LB", "UB", "SUM", "MIN",
-        "MAX", "fix", "YCombinator", "narrow_as", "as",
-    },
-    NDVEC_HPP: {
-        "make_nd_vec", "make_vec2", "make_vec3", "make_vec4",
-        "make_vec", "vv", "vvv", "vvvv",
+        "MAX", "fix", "YCombinator", "isz", "sum_range", "ROF", "FORD",
     },
     INTEGER_MATH_HPP: {
         "div_floor", "div_ceil", "mod_floor", "divmod", "power", "mod_pow",
@@ -116,17 +109,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "fast_io", "IN", "OUT", "FLUSH", "INT", "LL", "ULL", "STR", "CHR",
         "DBL", "VEC", "VV", "YES", "NO", "Yes", "No",
     },
-    IO_COMPOSITE_HPP: {
-        "Vec", "VecI32", "VecI64", "Pair", "PairI32",
-        "PairI64", "Tuple", "VEC", "VV",
-    },
     FAST_IO_HPP: {
-        "fast_io", "load_input", "read_integer", "read_char", "read_string",
-        "write_integer", "write_char", "write_string", "flush_output", "IOFlusher",
-        "IN", "OUT", "FLUSH", "INT", "LL", "ULL", "STR", "CHR", "DBL", "VEC", "VV",
-        "YES", "NO", "Yes", "No",
-    },
-    FAST_IO_MINIMAL_HPP: {
         "fast_io", "load_input", "read_integer", "read_char", "read_string",
         "write_integer", "write_char", "write_string", "flush_output", "IOFlusher",
         "IN", "OUT", "FLUSH", "INT", "LL", "ULL", "STR", "CHR", "DBL", "VEC", "VV",
@@ -144,17 +127,16 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
     CONTAINERS_HPP: {
         "binary_search", "binary_search_real", "argsort", "rearrange", "cumsum",
         "concat", "sum_as", "string_to_ints", "pop_val",
+        "make_vec2", "make_vec3", "make_vec4",
     },
     MOD_INT_HPP: {
         "ModInt", "DynModInt", "MInt", "MInt2", "DMInt",
     },
     CONCEPTS_HPP: {
-        "Integral", "SignedIntegral", "UnsignedIntegral",
-        "NonBoolIntegral", "Floating", "Arithmetic", "IndexLike",
-        "Range", "SizedRange", "StreamReadable", "StreamWritable",
+        "IndexLike", "Range", "SizedRange", "StreamReadable", "StreamWritable",
     },
     CAST_HPP: {
-        "to_underlying", "enum_cast", "narrow", "try_narrow", "saturate",
+        "to_underlying", "enum_cast", "narrow", "try_narrow", "saturate", "narrow_as",
     },
     STRONG_TYPE_HPP: {
         "StrongType", "unwrap", "make_strong", "strong", "StrongInt",
@@ -175,28 +157,25 @@ HEADER_DEPENDENCIES: dict[str, set[str]] = {
     TYPES_HPP: {SCALAR_TYPES_HPP, CONTAINER_ALIASES_HPP},
     CONTAINER_ALIASES_HPP: {SCALAR_TYPES_HPP},
     TYPE_TRAITS_HPP: {SCALAR_TYPES_HPP},
-    IDIOM_ALIASES_HPP: {SCALAR_TYPES_HPP},
+    IDIOM_ALIASES_HPP: {SCALAR_TYPES_HPP, TYPE_TRAITS_HPP},
     CONSTANTS_HPP: {SCALAR_TYPES_HPP},
-    MACROS_HPP: {SCALAR_TYPES_HPP},
+    MACROS_HPP: {SCALAR_TYPES_HPP, TYPE_TRAITS_HPP, IDIOM_ALIASES_HPP},
     INTEGER_MATH_HPP: {IDIOM_ALIASES_HPP, MACROS_HPP, TYPE_TRAITS_HPP},
     MINMAX_HPP: set(),
     RANDOM_HPP: {IDIOM_ALIASES_HPP, MACROS_HPP},
     TIMER_HPP: {SCALAR_TYPES_HPP},
     IO_DEFS_HPP: {SCALAR_TYPES_HPP},
     IO_HPP: {SCALAR_TYPES_HPP, IO_DEFS_HPP},
-    IO_COMPOSITE_HPP: {CONTAINER_ALIASES_HPP},
     FAST_IO_HPP: {SCALAR_TYPES_HPP, MACROS_HPP, IDIOM_ALIASES_HPP, IO_DEFS_HPP},
-    FAST_IO_MINIMAL_HPP: {SCALAR_TYPES_HPP, MACROS_HPP, IDIOM_ALIASES_HPP, IO_DEFS_HPP},
     FAST_IO_EXT_MOD_INT_HPP: {FAST_IO_HPP, MOD_INT_HPP},
     FAST_IO_EXT_STRONG_TYPE_HPP: {FAST_IO_HPP, STRONG_TYPE_HPP},
     BIT_OPS_HPP: {IDIOM_ALIASES_HPP, TYPE_TRAITS_HPP},
     CONTAINERS_HPP: {CONTAINER_ALIASES_HPP, IDIOM_ALIASES_HPP},
-    NDVEC_HPP: {CONTAINER_ALIASES_HPP},
     MOD_INT_HPP: {SCALAR_TYPES_HPP, CONSTANTS_HPP},
-    CONCEPTS_HPP: {TYPE_TRAITS_HPP, IDIOM_ALIASES_HPP},
+    CONCEPTS_HPP: {IDIOM_ALIASES_HPP},
     CAST_HPP: {CONTAINER_ALIASES_HPP, CONCEPTS_HPP},
     STRONG_TYPE_HPP: {CONCEPTS_HPP},
-    HASHING_HPP: {IDIOM_ALIASES_HPP},
+    HASHING_HPP: {IDIOM_ALIASES_HPP, TYPE_TRAITS_HPP},
     DEBUG_HPP: set(),
 }
 

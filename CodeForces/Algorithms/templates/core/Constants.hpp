@@ -1,5 +1,5 @@
 #pragma once
-#include "ScalarTypes.hpp"
+#include "templates/core/ScalarTypes.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Mathematical Constants and Infinity Values */

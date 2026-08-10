@@ -105,7 +105,7 @@ def test_flattener_fast_minimal_profile_selects_minimal_variant(
     write_source: Callable[[str, str], Path],
     flatten_inproc: Callable[..., FlattenResult],
 ) -> None:
-    """``CP_IO_PROFILE_FAST_MINIMAL`` must inline the shim and pick variant 0."""
+    """``CP_IO_PROFILE_FAST_MINIMAL`` must resolve Fast_IO to the variant-0 body."""
 
     source = write_source(
         "probe.cpp",
@@ -121,8 +121,10 @@ def test_flattener_fast_minimal_profile_selects_minimal_variant(
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "safe"})
 
     assert result.returncode == 0, result.stderr
-    # The shim sets the variant to 0 (minimal) before including Fast_IO.hpp.
-    assert "#define CP_FAST_IO_VARIANT 0" in result.stdout
+    # Variant 0 is folded in: full-reload input, no refill sentinel / extensions.
+    assert "Full reload" in result.stdout
+    assert "input_eof" not in result.stdout
+    assert "#if CP_FAST_IO_VARIANT" not in result.stdout
     # Fast I/O dispatch binds to fast_io::read.
     assert "fast_io::read" in result.stdout
 
@@ -132,7 +134,7 @@ def test_flattener_fast_extended_profile_does_not_set_minimal_variant(
     write_source: Callable[[str, str], Path],
     flatten_inproc: Callable[..., FlattenResult],
 ) -> None:
-    """``CP_IO_PROFILE_FAST_EXTENDED`` must not pull in the minimal shim."""
+    """``CP_IO_PROFILE_FAST_EXTENDED`` must resolve Fast_IO to the variant-1 body."""
 
     source = write_source(
         "probe.cpp",
@@ -148,27 +150,28 @@ def test_flattener_fast_extended_profile_does_not_set_minimal_variant(
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "safe"})
 
     assert result.returncode == 0, result.stderr
-    # The shim's variant override must not appear in extended flow.
-    assert "#define CP_FAST_IO_VARIANT 0" not in result.stdout
+    # Variant 1 keeps the refill sentinel and drops the full-reload branch.
+    assert "input_eof" in result.stdout
+    assert "Full reload" not in result.stdout
     # The fast_extended profile resolves CP_FAST_IO_ENABLE_MODINT=1, so the
     # ModInt section is folded in (the guard macro itself is now collapsed away,
     # which is why we assert on the materialized type, not the macro name).
     assert "ModInt" in result.stdout
 
 
-def test_flattener_collision_fast_io_wins_over_minimal(
+def test_flattener_collision_fast_io_wins_over_simple(
     clean_cp_env: None,
     write_source: Callable[[str, str], Path],
     flatten_inproc: Callable[..., FlattenResult],
 ) -> None:
-    """When both NEED_FAST_IO and NEED_FAST_IO_MINIMAL are set, the extended wins."""
+    """When both NEED_IO and NEED_FAST_IO are set, the fast backend wins."""
 
     source = write_source(
         "probe.cpp",
         textwrap.dedent(
             """\
+            #define NEED_IO
             #define NEED_FAST_IO
-            #define NEED_FAST_IO_MINIMAL
             #include "templates/Base.hpp"
             auto main() -> int { return 0; }
             """
@@ -178,7 +181,6 @@ def test_flattener_collision_fast_io_wins_over_minimal(
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "safe"})
 
     assert result.returncode == 0, result.stderr
-    # The shim's variant override (= 0) must NOT be emitted: extended path wins.
-    assert "#define CP_FAST_IO_VARIANT 0" not in result.stdout
-    # The fast_io namespace must still be present (Fast_IO.hpp included).
+    # cp_io must not be emitted alongside the fast backend.
+    assert "namespace cp_io {" not in result.stdout
     assert "namespace fast_io {" in result.stdout

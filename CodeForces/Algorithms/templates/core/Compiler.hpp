@@ -1,5 +1,5 @@
 #pragma once
-#include "Config.hpp"
+#include "templates/core/Config.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Compiler Pragmas */
@@ -7,9 +7,13 @@
 #if defined(__GNUC__) && !defined(__clang__)
   #if CP_ENABLE_GCC_OPTIMIZE_PRAGMAS
     #if CP_ENABLE_AGGRESSIVE_OPTIMIZATIONS
-      #pragma GCC optimize("Ofast,unroll-loops,fast-math,O3,inline-functions")
+      #pragma GCC optimize("O3,unroll-loops,inline-functions,omit-frame-pointer")
     #else
       #pragma GCC optimize("O3,unroll-loops,inline-functions")
+    #endif
+    // Separate opt-in: fast-math drops NaN/Inf and reassociates FP.
+    #if CP_ENABLE_FAST_MATH
+      #pragma GCC optimize("Ofast,fast-math")
     #endif
   #endif
   #pragma GCC diagnostic push

@@ -3,9 +3,6 @@
 // Generated from profiles.toml. Do not edit by hand.
 
 #if defined(CP_TEMPLATE_PROFILE_STRICT)
-  #ifndef CP_STRICT_TEMPLATE_NEEDS
-    #define CP_STRICT_TEMPLATE_NEEDS 1
-  #endif
   #ifndef CP_CORE_ENABLE_MATH
     #define CP_CORE_ENABLE_MATH 0
   #endif
@@ -26,11 +23,17 @@
 #ifndef CP_USE_BITS_HEADER
   #define CP_USE_BITS_HEADER 1
 #endif
+#ifndef CP_IO_ENABLE_COMPOSITE
+  #define CP_IO_ENABLE_COMPOSITE 1
+#endif
 #ifndef CP_ENABLE_LEGACY_IO_VEC_MACROS
   #define CP_ENABLE_LEGACY_IO_VEC_MACROS 1
 #endif
 #ifndef CP_ENABLE_AGGRESSIVE_OPTIMIZATIONS
   #define CP_ENABLE_AGGRESSIVE_OPTIMIZATIONS 0
+#endif
+#ifndef CP_ENABLE_FAST_MATH
+  #define CP_ENABLE_FAST_MATH 0
 #endif
 #ifndef CP_ENABLE_GCC_OPTIMIZE_PRAGMAS
   #define CP_ENABLE_GCC_OPTIMIZE_PRAGMAS 1
@@ -49,12 +52,4 @@
 #endif
 #ifndef CP_DEBUG_ENABLE_TREE
   #define CP_DEBUG_ENABLE_TREE 0
-#endif
-
-#ifndef CP_IO_ENABLE_COMPOSITE
-  #if CP_ENABLE_LEGACY_IO_VEC_MACROS
-    #define CP_IO_ENABLE_COMPOSITE 1
-  #else
-    #define CP_IO_ENABLE_COMPOSITE 0
-  #endif
 #endif

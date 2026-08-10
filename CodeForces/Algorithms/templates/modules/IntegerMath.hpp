@@ -140,6 +140,8 @@ template <cp::Int T>
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T power(T base, T exp) {
+  if constexpr (cp::Signed<T>)
+    my_assert(exp >= 0 && "power(): negative exponent has no integer result.");
   T result = 1;
   while (exp > 0) {
     if (exp & 1)

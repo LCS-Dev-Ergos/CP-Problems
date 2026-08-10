@@ -31,7 +31,7 @@ from module_runtime import (
     CompilerInvocation,
     build_compiler_flags,
     compiler_supports_std_headers,
-    load_template_config,
+    load_tooling_config,
     parse_jobs_argument,
     select_compiler,
 )
@@ -87,7 +87,7 @@ COMBINATION_CANDIDATES = (
         "int main() { LL(n); OUT(n); return 0; }",
     ),
     (
-        ("NEED_CORE", "NEED_FAST_IO_MINIMAL"),
+        ("NEED_CORE", "NEED_FAST_IO"),
         "Core + Fast I/O (minimal variant)",
         "int main() { LL(n); OUT(n); return 0; }",
     ),
@@ -240,7 +240,7 @@ class ModuleTester:
         """Initialize tester state, compiler selection, NEED_* discovery, parallelism."""
         self.templates_dir = templates_dir.expanduser().resolve()
         self.test_results: list[ModuleTestRecord] = []
-        self.config = load_template_config(self.templates_dir)
+        self.config = load_tooling_config(self.templates_dir)
         self.compiler = select_compiler(self.config)
         self.compiler_flags = build_compiler_flags(self.config)
         self.need_mapping = _discover_need_mapping(self.templates_dir)
@@ -589,7 +589,7 @@ def main() -> int:
 
 
 _DEPRECATED_NAMES: dict[str, Callable[..., Any]] = {
-    "_load_template_config": load_template_config,
+    "_load_template_config": load_tooling_config,
     "_select_compiler": select_compiler,
     "_build_compiler_flags": build_compiler_flags,
     "_compiler_supports_std_headers": compiler_supports_std_headers,

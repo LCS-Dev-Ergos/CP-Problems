@@ -1,5 +1,5 @@
 #pragma once
-#include "FeatureDetect.hpp"
+#include "templates/core/FeatureDetect.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Debug and Assertion Policy */

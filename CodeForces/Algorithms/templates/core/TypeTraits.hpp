@@ -1,8 +1,13 @@
 #pragma once
-#include "ScalarTypes.hpp"
+#include "templates/core/ScalarTypes.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Extended Type Traits */
+
+template <typename To>
+[[gnu::always_inline]] constexpr To as(auto&& x) noexcept {
+  return static_cast<To>(std::forward<decltype(x)>(x));
+}
 
 namespace cp {
 

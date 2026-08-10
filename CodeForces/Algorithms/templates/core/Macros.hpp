@@ -1,6 +1,11 @@
 #pragma once
-#include "Debug.hpp"
-#include "TypeTraits.hpp"
+#include "templates/core/Debug.hpp"
+#include "templates/core/IdiomAliases.hpp"
+#include "templates/core/TypeTraits.hpp"
+
+#ifndef CP_ENABLE_SHORT_MACROS
+  #define CP_ENABLE_SHORT_MACROS 1
+#endif
 
 //===----------------------------------------------------------------------===//
 /* Advanced Macro System */
@@ -45,19 +50,34 @@
 #define RALL(x) std::ranges::rbegin(x), std::ranges::rend(x)
 
 // Container utility macros:
-#define all(x) (x).begin(), (x).end()
-#define rall(x) (x).rbegin(), (x).rend()
-#define sz(x) cp::sz64(x)
-#define isz(x) cp::sz32(x)
-#define len(x) sz(x)
-#define eb emplace_back
-#define elif else if
+#if CP_ENABLE_SHORT_MACROS
+  #define all(x) (x).begin(), (x).end()
+  #define rall(x) (x).rbegin(), (x).rend()
+  #define sz(x) cp::sz64(x)
+  #define isz(x) cp::sz32(x)
+  #define len(x) sz(x)
+  #define eb emplace_back
+  #define elif else if
+#endif
+
+namespace cp {
+
+// Narrow integers accumulate in I64/U64; any other element type keeps its own.
+template <class R>
+[[gnu::always_inline]] constexpr auto sum_range(const R& r) {
+  using V   = std::ranges::range_value_t<remove_cvref_t<R>>;
+  using Acc = Conditional<Int<V> && !std::same_as<V, bool> && sizeof(V) < sizeof(I64),
+              Conditional<Signed<V>, I64, U64>, V>;
+  return std::accumulate(std::ranges::begin(r), std::ranges::end(r), Acc{});
+}
+
+} // namespace cp
 
 // Advanced container operations:
 #define UNIQUE(x) (std::ranges::sort(x), x.erase(std::ranges::unique(x).begin(), x.end()), x.shrink_to_fit())
 #define LB(c, x) (I64) std::distance((c).begin(), std::ranges::lower_bound(c, x))
 #define UB(c, x) (I64) std::distance((c).begin(), std::ranges::upper_bound(c, x))
-#define SUM(x) std::accumulate(all(x), std::iter_value_t<decltype((x).begin())>{})
+#define SUM(x) cp::sum_range(x)
 #define MIN(x)                                       \
   ([&]() -> decltype(auto) {                         \
     auto&& _cp_min_range = (x);                      \
@@ -94,10 +114,4 @@ YCombinator(F) -> YCombinator<F>;
 template <class F>
 [[gnu::always_inline]] constexpr auto fix(F&& fn) {
   return YCombinator<std::decay_t<F>>{std::forward<F>(fn)};
-}
-
-// Type-safe cast alias:
-template <typename To>
-[[gnu::always_inline]] constexpr To as(auto&& x) noexcept {
-  return static_cast<To>(std::forward<decltype(x)>(x));
 }

@@ -43,18 +43,19 @@ class ProfileRegistryTests(unittest.TestCase):
             {"base", "default", "pbds", "advanced"},
         )
 
-    def test_fast_minimal_profile_drives_minimal_need(self) -> None:
-        """fast_minimal io_profile should request NEED_FAST_IO_MINIMAL only."""
+    def test_fast_minimal_profile_selects_variant_zero(self) -> None:
+        """fast_minimal shares the fast backend and only pins CP_FAST_IO_VARIANT."""
         registry = profile_registry.load_registry()
         profile = registry.io_profiles["fast_minimal"]
-        self.assertEqual(set(profile.needs), {"NEED_FAST_IO_MINIMAL"})
-        self.assertEqual(dict(profile.defines), {})
+        self.assertEqual(set(profile.needs), {"NEED_FAST_IO"})
+        self.assertEqual(dict(profile.defines), {"CP_FAST_IO_VARIANT": 0})
 
     def test_feature_manifest_exposes_need_to_headers_mapping(self) -> None:
         """Feature headers should be available without parsing Base.hpp."""
         registry = profile_registry.load_registry()
         mapping = registry.feature_headers()
-        self.assertEqual(mapping["NEED_IO"], ["modules/IO.hpp"])
+        self.assertEqual(mapping["NEED_IO"][-1], "modules/IO.hpp")
+        self.assertIn("core/ContainerAliases.hpp", mapping["NEED_IO"])
         self.assertIn("core/Types.hpp", mapping["NEED_CORE"])
         self.assertIn("modules/IntegerMath.hpp", mapping["NEED_CORE"])
 
@@ -78,13 +79,23 @@ class ProfileRegistryTests(unittest.TestCase):
         self.assertEqual(dict(profile.defines), {"CP_USE_GLOBAL_STD_NAMESPACE": 1})
 
     def test_config_defaults_apply_strict_overrides(self) -> None:
-        """Strict profile should disable global std namespace and enforce explicit NEED_* flags."""
+        """Strict profile should drop the global std namespace and the core math bundle."""
         registry = profile_registry.load_registry()
         relaxed = registry.config_defaults_as_dict(strict=False)
         strict = registry.config_defaults_as_dict(strict=True)
         self.assertEqual(relaxed["CP_USE_GLOBAL_STD_NAMESPACE"], 1)
         self.assertEqual(strict["CP_USE_GLOBAL_STD_NAMESPACE"], 0)
-        self.assertEqual(strict["CP_STRICT_TEMPLATE_NEEDS"], 1)
+        self.assertEqual(relaxed["CP_CORE_ENABLE_MATH"], 1)
+        self.assertEqual(strict["CP_CORE_ENABLE_MATH"], 0)
+
+    def test_composite_io_is_enabled_in_every_profile(self) -> None:
+        """Structured Vec/Pair/tuple I/O must survive the strict profile."""
+        registry = profile_registry.load_registry()
+        self.assertEqual(
+            registry.config_defaults_as_dict(strict=False)["CP_IO_ENABLE_COMPOSITE"], 1
+        )
+        self.assertEqual(registry.config_defaults_as_dict(strict=True)["CP_IO_ENABLE_COMPOSITE"], 1)
+        self.assertNotIn("CP_IO_ENABLE_COMPOSITE", registry.defaults.strict_overrides)
 
     def test_io_profile_to_needs_uses_macro_names(self) -> None:
         """IO profile mapping should translate CP_IO_PROFILE_SIMPLE into NEED_IO tuple."""
@@ -93,7 +104,7 @@ class ProfileRegistryTests(unittest.TestCase):
         self.assertIn("CP_IO_PROFILE_SIMPLE", mapping)
         self.assertEqual(mapping["CP_IO_PROFILE_SIMPLE"], ("NEED_IO",))
         self.assertIn("CP_IO_PROFILE_FAST_MINIMAL", mapping)
-        self.assertEqual(mapping["CP_IO_PROFILE_FAST_MINIMAL"], ("NEED_FAST_IO_MINIMAL",))
+        self.assertEqual(mapping["CP_IO_PROFILE_FAST_MINIMAL"], ("NEED_FAST_IO",))
 
     def test_expand_io_profiles_accepts_macro_names_and_defines(self) -> None:
         """IO expansion should be available from profile macro names, not only TOML keys."""
@@ -113,15 +124,12 @@ class ProfileRegistryTests(unittest.TestCase):
             registry.expand_io_profiles(["CP_IO_PROFILE_SIMPLE", "CP_IO_PROFILE_FAST_MINIMAL"])
 
     def test_normalize_needs_matches_generated_io_precedence(self) -> None:
-        """Fast backends should shadow simple IO, and extended should shadow minimal."""
+        """The fast backend should shadow simple IO."""
         registry = profile_registry.load_registry()
 
+        self.assertEqual(registry.normalize_needs({"NEED_IO"}), {"NEED_IO"})
         self.assertEqual(
-            registry.normalize_needs({"NEED_IO", "NEED_FAST_IO_MINIMAL"}),
-            {"NEED_FAST_IO_MINIMAL"},
-        )
-        self.assertEqual(
-            registry.normalize_needs({"NEED_IO", "NEED_FAST_IO", "NEED_FAST_IO_MINIMAL"}),
+            registry.normalize_needs({"NEED_IO", "NEED_FAST_IO"}),
             {"NEED_FAST_IO"},
         )
 

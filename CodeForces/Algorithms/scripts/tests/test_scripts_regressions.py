@@ -615,7 +615,7 @@ class ModuleRuntimeShimTests(unittest.TestCase):
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter("always")
             fn = module_tester._load_template_config
-        self.assertIs(fn, module_runtime.load_template_config)
+        self.assertIs(fn, module_runtime.load_tooling_config)
         self.assertTrue(
             any(issubclass(w.category, DeprecationWarning) for w in captured),
             msg="accessing the legacy name must raise a DeprecationWarning",

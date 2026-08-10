@@ -1,13 +1,12 @@
 #pragma once
 
-#ifndef CP_IO_IMPL_READ
-  #define CP_IO_IMPL_READ(...) ((void)0)
+#if !defined(CP_IO_IMPL_READ) || !defined(CP_IO_IMPL_WRITELN) || !defined(CP_IO_IMPL_FLUSH)
+  #error "No I/O backend selected: define CP_IO_PROFILE_SIMPLE / CP_IO_PROFILE_FAST_MINIMAL / CP_IO_PROFILE_FAST_EXTENDED \
+          (or a NEED_IO / NEED_FAST_IO macro) before including templates/Base.hpp."
 #endif
-#ifndef CP_IO_IMPL_WRITELN
-  #define CP_IO_IMPL_WRITELN(...) ((void)0)
-#endif
-#ifndef CP_IO_IMPL_FLUSH
-  #define CP_IO_IMPL_FLUSH() ((void)0)
+
+#if CP_ENABLE_LEGACY_IO_VEC_MACROS
+  #include "templates/core/ContainerAliases.hpp"
 #endif
 
 //===----------------------------------------------------------------------===//
@@ -25,10 +24,6 @@
   #define STR(...) std::string __VA_ARGS__; IN(__VA_ARGS__)
   #define CHR(...) char __VA_ARGS__; IN(__VA_ARGS__)
   #define DBL(...) F64 __VA_ARGS__; IN(__VA_ARGS__)
-
-  #ifndef CP_ENABLE_LEGACY_IO_VEC_MACROS
-    #define CP_ENABLE_LEGACY_IO_VEC_MACROS 1
-  #endif
 
   #if CP_ENABLE_LEGACY_IO_VEC_MACROS
     #define VEC(type, name, size) Vec<type> name(size); IN(name)

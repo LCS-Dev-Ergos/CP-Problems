@@ -1,5 +1,5 @@
 #pragma once
-#include "IntegerMath.hpp"
+#include "templates/modules/IntegerMath.hpp"
 #include "templates/core/Constants.hpp"
 #include "templates/core/IdiomAliases.hpp"
 #include "templates/core/Macros.hpp"
@@ -25,9 +25,7 @@ struct Barrett {
       v += m;
     return v;
 #else
-    U64 res = U64(a) * b - U64(1.L * a * b / m - 0.5L) * m;
-    res %= m;
-    return U32(res);
+    return U32((U64(a) * b) % m);
 #endif
   }
 };

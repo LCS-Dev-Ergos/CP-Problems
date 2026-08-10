@@ -1,8 +1,8 @@
 #pragma once
 #ifndef CP_TYPES_NO_PREAMBLE
-#include "Preamble.hpp"
+  #include "templates/core/Preamble.hpp"
 #endif
-#include "FeatureDetect.hpp"
+#include "templates/core/FeatureDetect.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Scalar Type Aliases */

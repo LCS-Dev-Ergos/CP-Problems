@@ -1,11 +1,12 @@
 #pragma once
-#include "ScalarTypes.hpp"
+#include "templates/core/ScalarTypes.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Lightweight Stopwatch Utility */
 
 struct Stopwatch {
-  using Clock = std::chrono::high_resolution_clock;
+  // Not high_resolution_clock: it may alias system_clock and jump backwards.
+  using Clock = std::chrono::steady_clock;
   Clock::time_point start;
 
   Stopwatch() : start(Clock::now()) {}

@@ -2,10 +2,8 @@
 
 ``extract_macro_values_from_source`` walks the source prefix before
 ``templates/Base.hpp``, applies a conservative folder to skip unevaluable
-``#if`` blocks, then layers in: defaults from ``profile_registry`` (strict
-selection), per-IO-profile triggers (``CP_IO_PROFILE_*``),
-and the composite-IO opt-in driven by the ``COMPOSITE_IO_TRIGGER_TOKENS``
-identifier set.
+``#if`` blocks, then layers in defaults from ``profile_registry`` (strict
+selection) and the per-IO-profile expansion of ``CP_IO_PROFILE_*``.
 
 This is the pipeline-level wrapper around ``flattener_core.macros`` — the
 latter handles individual ``#define`` lines, the former composes them
@@ -17,7 +15,7 @@ from __future__ import annotations
 import re
 from typing import TextIO
 
-from flattener_core.lexer import extract_identifiers, strip_non_code
+from flattener_core.lexer import strip_non_code
 from flattener_core.macros import MacroValueMap
 from flattener_core.preprocessor import (
     ELSE_OR_ELIF_DIRECTIVE_RE,
@@ -30,23 +28,6 @@ from profile_registry import load_registry
 _MACRO_DEFINE_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)(?:\s+(.*?))?\s*$")
 _MACRO_UNDEF_RE = re.compile(r"^\s*#\s*undef\s+([A-Za-z_]\w*)\s*$")
 _NUMERIC_LITERAL_RE = re.compile(r"^[+-]?(?:0|[1-9]\d*|0[xX][0-9A-Fa-f]+)(?:[uUlL]{0,3})?$")
-
-COMPOSITE_IO_TRIGGER_TOKENS: frozenset[str] = frozenset(
-    {
-        "Vec",
-        "VecI32",
-        "VecI64",
-        "VecBool",
-        "VecStr",
-        "Pair",
-        "PairI32",
-        "PairI64",
-        "Tuple",
-        "VEC",
-        "VV",
-    }
-)
-
 
 def _parse_macro_value(value_expr: str | None, macro_values: MacroValueMap) -> int | None:
     """Parse a simple ``#define`` value into ``int`` / ``None``.
@@ -142,11 +123,6 @@ def extract_macro_values_from_source(
     for name, value in registry.config_defaults_as_dict(strict=strict_profile_enabled).items():
         macro_values.setdefault(name, value)
 
-    if "CP_IO_ENABLE_COMPOSITE" not in macro_values:
-        macro_values["CP_IO_ENABLE_COMPOSITE"] = (
-            1 if macro_values.get("CP_ENABLE_LEGACY_IO_VEC_MACROS") not in (None, 0) else 0
-        )
-
     def _is_enabled(name: str) -> bool:
         value = macro_values.get(name)
         return value is not None and value != 0
@@ -178,8 +154,5 @@ def extract_macro_values_from_source(
     normalized_needs = registry.normalize_needs(enabled_needs)
     for need in enabled_needs - normalized_needs:
         macro_values.pop(need, None)
-
-    if extract_identifiers(source_prefix_content) & COMPOSITE_IO_TRIGGER_TOKENS:
-        macro_values["CP_IO_ENABLE_COMPOSITE"] = 1
 
     return macro_values

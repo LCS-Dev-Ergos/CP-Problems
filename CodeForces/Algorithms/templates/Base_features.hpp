@@ -2,87 +2,97 @@
 
 // Generated from profiles.toml. Do not edit by hand.
 
+#ifdef NEED_PBDS
+  #include "templates/modules/PBDS.hpp"
+#endif
+
 #ifdef NEED_CORE
-  #include "core/Constants.hpp"
-  #include "core/Macros.hpp"
-  #include "core/Types.hpp"
+  #include "templates/core/ScalarTypes.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/core/Constants.hpp"
+  #include "templates/core/Macros.hpp"
+  #include "templates/core/Types.hpp"
   #if CP_CORE_ENABLE_MATH
-    #include "core/MinMax.hpp"
-    #include "core/Random.hpp"
-    #include "modules/IntegerMath.hpp"
+    #include "templates/core/MinMax.hpp"
+    #include "templates/core/Random.hpp"
+    #include "templates/modules/IntegerMath.hpp"
   #endif
 #endif
 
 #ifdef NEED_SCALAR_TYPES
-  #include "core/ScalarTypes.hpp"
+  #include "templates/core/ScalarTypes.hpp"
 #endif
 
 #ifdef NEED_TYPES
-  #include "core/Types.hpp"
+  #include "templates/core/ScalarTypes.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/core/Types.hpp"
 #endif
 
 #ifdef NEED_CONSTANTS
-  #include "core/Constants.hpp"
+  #include "templates/core/Constants.hpp"
 #endif
 
 #ifdef NEED_MACROS
-  #include "core/Macros.hpp"
+  #include "templates/core/Macros.hpp"
 #endif
 
 #ifdef NEED_MATH
-  #include "core/MinMax.hpp"
-  #include "core/Random.hpp"
-  #include "modules/IntegerMath.hpp"
+  #include "templates/core/MinMax.hpp"
+  #include "templates/core/Random.hpp"
+  #include "templates/modules/IntegerMath.hpp"
 #endif
 
 #ifdef NEED_INTEGER_MATH
-  #include "modules/IntegerMath.hpp"
+  #include "templates/modules/IntegerMath.hpp"
 #endif
 
 #ifdef NEED_MINMAX
-  #include "core/MinMax.hpp"
+  #include "templates/core/MinMax.hpp"
 #endif
 
 #ifdef NEED_RANDOM
-  #include "core/Random.hpp"
+  #include "templates/core/Random.hpp"
 #endif
 
 #ifdef NEED_TIMER
-  #include "core/Timer.hpp"
+  #include "templates/core/Timer.hpp"
 #endif
 
 #ifdef NEED_HASHING
-  #include "modules/Hashing.hpp"
-#endif
-
-#ifdef NEED_PBDS
-  #include "modules/PBDS.hpp"
+  #include "templates/modules/Hashing.hpp"
 #endif
 
 #ifdef NEED_FAST_IO
-  #include "modules/Fast_IO.hpp"
-#endif
-
-#ifdef NEED_FAST_IO_MINIMAL
-  #include "modules/Fast_IO_Minimal.hpp"
+  #include "templates/core/ScalarTypes.hpp"
+  #include "templates/core/TypeTraits.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/core/Macros.hpp"
+  #include "templates/modules/Fast_IO.hpp"
 #endif
 
 #ifdef NEED_IO
-  #include "modules/IO.hpp"
+  #include "templates/core/ScalarTypes.hpp"
+  #include "templates/core/TypeTraits.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/core/Macros.hpp"
+  #include "templates/modules/IO.hpp"
 #endif
 
 #ifdef NEED_BIT_OPS
-  #include "modules/Bit_Ops.hpp"
+  #include "templates/modules/Bit_Ops.hpp"
 #endif
 
 #ifdef NEED_MOD_INT
-  #include "modules/Mod_Int.hpp"
+  #include "templates/modules/Mod_Int.hpp"
 #endif
 
 #ifdef NEED_CONTAINERS
-  #include "modules/Containers.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/modules/Containers.hpp"
 #endif
 
 #ifdef NEED_NDVEC
-  #include "modules/NdVec.hpp"
+  #include "templates/core/ContainerAliases.hpp"
+  #include "templates/modules/Containers.hpp"
 #endif

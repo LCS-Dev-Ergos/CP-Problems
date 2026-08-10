@@ -1,6 +1,6 @@
 #pragma once
-#include "Fast_IO_Fwd.hpp"
-#include "Mod_Int.hpp"
+#include "templates/modules/Fast_IO_Fwd.hpp"
+#include "templates/modules/Mod_Int.hpp"
 
 ///@brief Optional Fast I/O extension for ModInt.
 namespace fast_io {

@@ -100,7 +100,7 @@ _NDVEC_SOURCE = textwrap.dedent(
     #include "templates/Base.hpp"
     void solve() {
       INT(n, m);
-      vv(I64, g, n, m, 0);
+      auto g = make_vec2<I64>(n, m, 0);
       g[0][0] = 7;
       OUT(g[0][0] + (I64)g.size());
     }
@@ -183,7 +183,7 @@ def test_ndvec_submission_compiles(
     write_source: Callable[[str, str], Path],
     flatten_inproc: Callable[..., FlattenResult],
 ) -> None:
-    """NEED_NDVEC must inline modules/NdVec.hpp into a compiling submission."""
+    """NEED_NDVEC must inline the nd-vector builders into a compiling submission."""
 
     source = write_source("probe.cpp", _NDVEC_SOURCE)
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
@@ -191,7 +191,7 @@ def test_ndvec_submission_compiles(
     assert result.returncode == 0, result.stderr
     assert 'include "templates/' not in result.stdout
     assert 'include "modules/' not in result.stdout
-    assert "make_vec2" in result.stdout  # the helper backing vv() was inlined
+    assert "make_vec2" in result.stdout  # NEED_NDVEC resolves to Containers.hpp
 
     compiled = _compile_submission(result.stdout)
     assert compiled.returncode == 0, compiled.stderr

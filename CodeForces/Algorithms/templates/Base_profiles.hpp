@@ -13,8 +13,11 @@
 #endif
 
 #ifdef CP_IO_PROFILE_FAST_MINIMAL
-  #ifndef NEED_FAST_IO_MINIMAL
-    #define NEED_FAST_IO_MINIMAL
+  #ifndef NEED_FAST_IO
+    #define NEED_FAST_IO
+  #endif
+  #ifndef CP_FAST_IO_VARIANT
+    #define CP_FAST_IO_VARIANT 0
   #endif
 #endif
 
@@ -36,9 +39,6 @@
   #endif
 #endif
 
-#if defined(NEED_IO) && (defined(NEED_FAST_IO) || defined(NEED_FAST_IO_MINIMAL))
+#if defined(NEED_IO) && (defined(NEED_FAST_IO))
   #undef NEED_IO
-#endif
-#if defined(NEED_FAST_IO_MINIMAL) && (defined(NEED_FAST_IO))
-  #undef NEED_FAST_IO_MINIMAL
 #endif

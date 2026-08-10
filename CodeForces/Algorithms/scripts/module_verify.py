@@ -24,9 +24,9 @@ from typing import Literal, TypedDict
 from _lib.process import ProcessRequest, run_capture
 from module_runtime import (
     DEFAULT_PROBE_JOBS,
-    TemplateConfigPayload,
+    ToolingConfig,
     build_compiler_flags,
-    load_template_config,
+    load_tooling_config,
     parse_jobs_argument,
     select_compiler,
 )
@@ -154,7 +154,7 @@ class ModuleVerifier:
         Compiler selection and flag derivation are deferred to
         ``cached_property``s so unit tests that do not exercise the compile
         path avoid the cost of probing toolchains and the I/O of reading
-        ``.template_config.json``.
+        ``templates/profiles.toml``.
         """
 
         self.algorithms_dir = algorithms_dir.expanduser().resolve()
@@ -166,10 +166,10 @@ class ModuleVerifier:
         self._print_lock = threading.Lock()
 
     @functools.cached_property
-    def config(self) -> TemplateConfigPayload:
-        """Lazily loaded ``.template_config.json`` payload."""
+    def config(self) -> ToolingConfig:
+        """Lazily loaded ``[tooling]`` table from ``templates/profiles.toml``."""
 
-        return load_template_config(self.templates_dir)
+        return load_tooling_config(self.templates_dir)
 
     @functools.cached_property
     def compiler(self) -> str:

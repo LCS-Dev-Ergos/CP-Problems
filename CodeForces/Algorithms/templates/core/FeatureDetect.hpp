@@ -1,5 +1,5 @@
 #pragma once
-#include "StdHeaders.hpp"
+#include "templates/core/StdHeaders.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Toolchain Feature Detection */
@@ -12,8 +12,9 @@
   #endif
 #endif
 
+// __SIZEOF_FLOAT128__ is GCC's spelling, __FLOAT128__ is Clang's.
 #ifndef HAS_FLOAT128
-  #ifdef __FLOAT128__
+  #if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
     #define HAS_FLOAT128 1
   #else
     #define HAS_FLOAT128 0
