@@ -10,7 +10,7 @@
 /* Advanced Macro System */
 
 // Advanced FOR loop system:
-#define CP_LOOP(...) cp::loop<__VA_ARGS__>
+#define CP_LOOP(...) cp::Loop<__VA_ARGS__>
 #define CP_VAL(x, ...) CP_LOOP(__VA_ARGS__)::val(x)
 
 #define FOR1(a) \

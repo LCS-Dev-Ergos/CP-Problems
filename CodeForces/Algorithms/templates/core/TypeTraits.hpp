@@ -53,23 +53,23 @@ using make_unsigned_t = typename detail::make_unsigned<remove_cvref_t<T>>::type;
 namespace detail {
 
 template <class T, bool = std::is_integral_v<remove_cvref_t<T>> && !std::is_same_v<remove_cvref_t<T>, bool>>
-struct loop_arg {
+struct LoopArg {
   using type = remove_cvref_t<T>;
 };
 
 template <class T>
-struct loop_arg<T, true> {
+struct LoopArg<T, true> {
   using type = std::make_signed_t<remove_cvref_t<T>>;
 };
 
 } // namespace detail
 
 template <class... Ts>
-using loop_t = std::common_type_t<I32, typename detail::loop_arg<Ts>::type...>;
+using LoopT = std::common_type_t<I32, typename detail::LoopArg<Ts>::type...>;
 
 template <class... Ts>
-struct loop {
-  using T = loop_t<Ts...>;
+struct Loop {
+  using T = LoopT<Ts...>;
 
   template <class X>
   [[gnu::always_inline]] static constexpr T val(X x) noexcept {
