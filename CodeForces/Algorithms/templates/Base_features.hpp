@@ -83,6 +83,10 @@
   #include "templates/modules/Bit_Ops.hpp"
 #endif
 
+#ifdef NEED_RANGE_REDUCERS
+  #include "templates/modules/RangeReducers.hpp"
+#endif
+
 #ifdef NEED_MOD_INT
   #include "templates/modules/Mod_Int.hpp"
 #endif

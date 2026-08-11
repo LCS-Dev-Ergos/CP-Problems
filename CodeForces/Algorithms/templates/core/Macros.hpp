@@ -6,15 +6,6 @@
   #define CP_ENABLE_SHORT_MACROS 1
 #endif
 
-// SUM/MIN/MAX; set to 0 to keep IdiomAliases.hpp out of the submission.
-#ifndef CP_ENABLE_RANGE_REDUCERS
-  #define CP_ENABLE_RANGE_REDUCERS 1
-#endif
-
-#if CP_ENABLE_RANGE_REDUCERS
-  #include "templates/core/IdiomAliases.hpp"
-#endif
-
 //===----------------------------------------------------------------------===//
 /* Advanced Macro System */
 
@@ -68,49 +59,10 @@
   #define elif else if
 #endif
 
-#if CP_ENABLE_RANGE_REDUCERS
-
-namespace cp {
-
-// Narrow integers accumulate in I64/U64; any other element type keeps its own.
-template <class R>
-[[gnu::always_inline]] constexpr auto sum_range(const R& r) {
-  using V   = std::ranges::range_value_t<remove_cvref_t<R>>;
-  using Acc = Conditional<Int<V> && !std::same_as<V, bool> && sizeof(V) < sizeof(I64),
-              Conditional<Signed<V>, I64, U64>, V>;
-  return std::accumulate(std::ranges::begin(r), std::ranges::end(r), Acc{});
-}
-
-} // namespace cp
-
-#endif
-
 // Advanced container operations:
 #define UNIQUE(x) (std::ranges::sort(x), x.erase(std::ranges::unique(x).begin(), x.end()), x.shrink_to_fit())
 #define LB(c, x) (I64) std::distance((c).begin(), std::ranges::lower_bound(c, x))
 #define UB(c, x) (I64) std::distance((c).begin(), std::ranges::upper_bound(c, x))
-
-#if CP_ENABLE_RANGE_REDUCERS
-  #define SUM(x) cp::sum_range(x)
-  #define MIN(x)                                       \
-    ([&]() -> decltype(auto) {                         \
-      auto&& _cp_min_range = (x);                      \
-      if (std::ranges::empty(_cp_min_range)) {         \
-        my_assert(false && "MIN(): empty range.");     \
-        std::abort();                                  \
-      }                                                \
-      return *std::ranges::min_element(_cp_min_range); \
-    }())
-  #define MAX(x)                                       \
-    ([&]() -> decltype(auto) {                         \
-      auto&& _cp_max_range = (x);                      \
-      if (std::ranges::empty(_cp_max_range)) {         \
-        my_assert(false && "MAX(): empty range.");     \
-        std::abort();                                  \
-      }                                                \
-      return *std::ranges::max_element(_cp_max_range); \
-    }())
-#endif
 
 // Y-combinator for recursive lambdas:
 template <class F>

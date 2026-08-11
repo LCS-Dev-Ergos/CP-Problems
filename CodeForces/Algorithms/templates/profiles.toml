@@ -102,6 +102,12 @@ headers = ["core/ScalarTypes.hpp", "core/TypeTraits.hpp", "core/ContainerAliases
 [feature.NEED_BIT_OPS]
 headers = ["modules/Bit_Ops.hpp"]
 
+# Kept out of NEED_MACROS on purpose: SUM widens its accumulator through the
+# IdiomAliases concepts, so folding it into the macro layer charged every
+# solution ~50 lines it could not use.
+[feature.NEED_RANGE_REDUCERS]
+headers = ["modules/RangeReducers.hpp"]
+
 [feature.NEED_MOD_INT]
 headers = ["modules/Mod_Int.hpp"]
 

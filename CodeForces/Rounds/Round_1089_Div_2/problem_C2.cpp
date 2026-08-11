@@ -7,6 +7,7 @@
 
 #define NEED_CORE
 #define NEED_TIMER
+#define NEED_RANGE_REDUCERS
 #define CP_IO_PROFILE_SIMPLE
 
 #include "templates/Base.hpp"
