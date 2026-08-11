@@ -43,7 +43,7 @@ def _process_result(*, returncode: int = 0, stderr: str = "", timed_out: bool = 
     )
 
 
-# --------------------------------- run_compile ------------------------------ #
+# ------------------------------- run_compile -------------------------------- #
 
 
 def test_run_compile_reports_success_with_elapsed_time():
@@ -95,7 +95,7 @@ def test_run_compile_falls_back_to_argv0_as_the_label():
     assert "'clang++'" in (outcome.error or "")
 
 
-# ----------------------------- run_parallel_ordered ------------------------- #
+# --------------------------- run_parallel_ordered --------------------------- #
 
 
 def test_parallel_results_follow_submission_order_not_completion_order():
@@ -161,7 +161,7 @@ def test_worker_exception_propagates_to_the_caller():
         run_parallel_ordered([1, 2, 3], worker, jobs=2)
 
 
-# --------------------------------- CLI helpers ------------------------------ #
+# ------------------------------- CLI Helpers -------------------------------- #
 
 
 def test_write_json_report_creates_missing_parent_directories(tmp_path: Path):
@@ -188,7 +188,7 @@ def test_resolve_dir_argument_expands_a_user_relative_path():
     assert resolved.is_absolute()
 
 
-# ----------------------------- Toolchain selection -------------------------- #
+# --------------------------- Toolchain selection ---------------------------- #
 
 
 def test_build_compiler_flags_injects_the_probe_defaults():

@@ -99,7 +99,7 @@ def test_a_space_before_the_paren_makes_it_object_like():
     assert _apply("#define CP_FOO(x) 5") == {"CP_FOO": None}
 
 
-# ----------------- Pipeline and engine agree on one source ------------------ #
+# ----------------- Pipeline and Engine agree on one source ------------------ #
 
 
 def test_pipeline_extraction_matches_the_engine_on_function_like_macros():

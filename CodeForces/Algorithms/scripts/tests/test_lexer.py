@@ -18,7 +18,7 @@ def _matched(line: str) -> str | None:
     return match.group(0) if match else None
 
 
-# ------------------------------ Accepted forms ------------------------------ #
+# ------------------------------ Accepted Forms ------------------------------ #
 
 
 def test_matches_plain_definition():
@@ -45,7 +45,7 @@ def test_captures_the_callee_name():
     assert match.group(1) == "div_floor"
 
 
-# ------------------------------ Rejected forms ------------------------------ #
+# ------------------------------ Rejected Forms ------------------------------ #
 
 
 def test_does_not_match_trailing_garbage_after_call():

@@ -24,7 +24,7 @@ from strip_index_casts import (
     transform,
 )
 
-# ------------------------------ Cast stripping ------------------------------ #
+# ------------------------------ Cast Stripping ------------------------------ #
 
 
 def test_size_cast_on_simple_expression_drops_the_parens():
@@ -77,7 +77,7 @@ def test_transform_is_idempotent():
     assert transform(once) == once
 
 
-# --------------------------- Subscript paren cleanup ------------------------ #
+# ------------------------- Subscript Paren Cleanup -------------------------- #
 
 
 def test_redundant_subscript_parens_are_collapsed():

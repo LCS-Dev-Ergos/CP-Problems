@@ -25,7 +25,7 @@ def ev(expr, state=None, *, closed=False):
     return evaluate_simple_if_expression(expr, state or {}, closed_namespace=closed)
 
 
-# --------------------------- Expression evaluator --------------------------- #
+# --------------------------- Expression Evaluator --------------------------- #
 
 
 def test_literals_and_unary():
@@ -136,9 +136,7 @@ def test_is_macro_defined_and_authority():
     assert not is_authoritative_macro("__GNUC__")
 
 
-# --------------------------------------------------------------------------- #
-# Recursive folder
-# --------------------------------------------------------------------------- #
+# ----------------------------- Recursive Folder ----------------------------- #
 
 
 def fold(src, state=None, *, closed=False):
