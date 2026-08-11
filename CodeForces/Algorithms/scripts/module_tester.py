@@ -14,8 +14,6 @@ Toolchain discovery and the compiler invocation itself belong to
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
-import json
 import threading
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -30,7 +28,10 @@ from module_runtime import (
     build_compiler_flags,
     load_tooling_config,
     parse_jobs_argument,
+    resolve_dir_argument,
+    run_parallel_ordered,
     select_compiler,
+    write_json_report,
 )
 from need_resolver import load_need_mapping
 
@@ -449,28 +450,14 @@ class ModuleTester:
             print(empty_message)
             return
 
-        effective_jobs = self.jobs if parallel else 1
-        if effective_jobs == 1:
-            for case in cases:
-                outcome = self._compile_case(case)
-                self._print_case_result(case, outcome)
-                self._record_case(case, outcome)
-            return
-
-        outcomes_by_index: dict[int, CompilationOutcome] = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=effective_jobs) as executor:
-            futures = {
-                executor.submit(self._compile_case, case): (idx, case)
-                for idx, case in enumerate(cases)
-            }
-            for future in concurrent.futures.as_completed(futures):
-                idx, case = futures[future]
-                outcome = future.result()
-                outcomes_by_index[idx] = outcome
-                self._print_case_result(case, outcome)
-
-        for idx in range(len(cases)):
-            self._record_case(cases[idx], outcomes_by_index[idx])
+        outcomes = run_parallel_ordered(
+            cases,
+            self._compile_case,
+            jobs=self.jobs if parallel else 1,
+            on_result=self._print_case_result,
+        )
+        for case, outcome in zip(cases, outcomes, strict=True):
+            self._record_case(case, outcome)
 
     def test_individual_modules(self) -> None:
         """Test each discovered NEED_* macro individually."""
@@ -523,11 +510,7 @@ class ModuleTester:
             "need_macros": list(self.need_macros),
             "test_results": [result.to_dict() for result in self.test_results],
         }
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(
-            json.dumps(report, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        write_json_report(output_file, report)
         print(f"\nTest report saved to: {output_file}")
 
     def run_all_tests(self) -> bool:
@@ -592,11 +575,10 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.templates_dir is not None:
-        templates_dir = args.templates_dir.expanduser().resolve()
-    else:
-        script_dir = Path(__file__).parent.resolve()
-        templates_dir = script_dir.parent / "templates"
+    templates_dir = resolve_dir_argument(
+        args.templates_dir,
+        Path(__file__).resolve().parent.parent / "templates",
+    )
 
     if not templates_dir.is_dir():
         print(f"Error: Templates directory not found: {templates_dir}")

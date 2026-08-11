@@ -10,7 +10,6 @@ This complements `module_tester.py`:
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
 import functools
 import json
 import tempfile
@@ -28,7 +27,11 @@ from module_runtime import (
     build_compiler_flags,
     load_tooling_config,
     parse_jobs_argument,
+    resolve_dir_argument,
+    run_compile,
+    run_parallel_ordered,
     select_compiler,
+    write_json_report,
 )
 
 VerificationKind = Literal["compile", "run"]
@@ -314,17 +317,10 @@ class ModuleVerifier:
         *,
         timeout_seconds: float,
     ) -> tuple[bool, str | None]:
-        """Shared compiler invocation honoring the unified ``run_capture`` layer."""
+        """Adapt the shared :func:`run_compile` primitive to this module's pairs."""
 
-        try:
-            result = run_capture(ProcessRequest(argv=argv, timeout=timeout_seconds))
-        except OSError as exc:
-            return False, f"Unable to execute compiler '{self.compiler}': {exc}"
-        if result.timed_out:
-            return False, "Compilation timeout"
-        if result.returncode == 0:
-            return True, None
-        return False, result.stderr
+        outcome = run_compile(argv, timeout_seconds=timeout_seconds, compiler_label=self.compiler)
+        return outcome.success, outcome.error
 
     def _compile_binary(self, case: VerificationCase, output_path: Path) -> tuple[bool, str | None]:
         """Compile one runtime probe to an executable binary."""
@@ -463,18 +459,14 @@ class ModuleVerifier:
             print("No module verification cases discovered.")
             return False
 
-        records_by_index: dict[int, VerificationRecord] = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.jobs) as executor:
-            futures = {
-                executor.submit(self.run_case, case): (idx, case) for idx, case in enumerate(cases)
-            }
-            for future in concurrent.futures.as_completed(futures):
-                idx, case = futures[future]
-                record = future.result()
-                records_by_index[idx] = record
-                self._print_case_outcome(case, record)
-
-        self.results.extend(records_by_index[i] for i in range(len(cases)))
+        self.results.extend(
+            run_parallel_ordered(
+                cases,
+                self.run_case,
+                jobs=self.jobs,
+                on_result=self._print_case_outcome,
+            )
+        )
 
         passed = sum(1 for record in self.results if record.success)
         total = len(self.results)
@@ -495,8 +487,7 @@ class ModuleVerifier:
             "module_filters": list(self.module_filters),
             "results": [record.to_dict() for record in self.results],
         }
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        write_json_report(output_file, report)
         print(f"\nVerification report saved to: {output_file}")
 
 
@@ -543,10 +534,10 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.algorithms_dir is not None:
-        algorithms_dir = args.algorithms_dir.expanduser().resolve()
-    else:
-        algorithms_dir = Path(__file__).resolve().parent.parent
+    algorithms_dir = resolve_dir_argument(
+        args.algorithms_dir,
+        Path(__file__).resolve().parent.parent,
+    )
 
     if not algorithms_dir.is_dir():
         print(f"Error: Algorithms directory not found: {algorithms_dir}")
