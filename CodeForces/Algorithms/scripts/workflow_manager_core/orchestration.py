@@ -151,25 +151,6 @@ class WorkflowManager:
         )
 
 
-def build_cppconf_args(ns: argparse.Namespace) -> list[str]:
-    """Translate CLI namespace fields into raw `cppconf` arguments."""
-
-    args: list[str] = []
-    if ns.build_type:
-        args.append(ns.build_type)
-    if ns.compiler:
-        args.append(ns.compiler)
-    if ns.timing:
-        args.append(f"timing={ns.timing}")
-    if ns.pch:
-        args.append(f"pch={ns.pch}")
-    if ns.pch_rebuild:
-        args.append("pch-rebuild")
-    if ns.extra_conf_arg:
-        args.extend(ns.extra_conf_arg)
-    return args
-
-
 def run_step_with_policy(
     manager: WorkflowManager,
     ns: argparse.Namespace,

@@ -14,7 +14,8 @@ from __future__ import annotations
 import argparse
 import shutil
 
-from .orchestration import WorkflowManager, build_cppconf_args, run_step_with_policy
+from .argbuilders import build_cppconf_args
+from .orchestration import WorkflowManager, run_step_with_policy
 from .types import WorkflowCommandError
 from .utils import find_existing_target_source
 
