@@ -121,7 +121,7 @@ constexpr bool has_kth_bit(T x, I32 k) {
 
 /// @brief Iterate over set bits in a mask, yielding their 0-based indices.
 template <cp::Int T>
-struct bit_range {
+struct BitRange {
   T mask;
 
   struct iterator {
@@ -139,14 +139,14 @@ struct bit_range {
     bool operator!=(const iterator&) const { return current != 0; }
   };
 
-  bit_range(T mask) : mask(mask) {}
+  BitRange(T mask) : mask(mask) {}
 
   iterator begin() const { return iterator(mask); }
   iterator end() const { return iterator(0); }
 };
 
 template <cp::Int T>
-struct subset_range {
+struct SubsetRange {
   T mask;
 
   struct iterator {
@@ -168,7 +168,7 @@ struct subset_range {
     bool operator!=(const iterator&) const { return !finished; }
   };
 
-  subset_range(T mask) : mask(mask) {}
+  SubsetRange(T mask) : mask(mask) {}
 
   iterator begin() const { return iterator(mask); }
   iterator end() const { return iterator(0); }
