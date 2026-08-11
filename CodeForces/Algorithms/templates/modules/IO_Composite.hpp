@@ -4,7 +4,7 @@
 #endif
 
 //===----------------------------------------------------------------------===//
-/* Composite I/O Overloads (pair / vector / tuple) */
+/* Composite I/O Overloads */
 
 template <class T, class U>
 void read(std::pair<T, U>&);
