@@ -1,7 +1,7 @@
 //===----------------------------------------------------------------------===//
 /**
  * @file: problem_C_sub.cpp
- * @generated: 2026-08-10 23:34:52
+ * @generated: 2026-08-11 14:34:00
  * @source: problem_C.cpp
  * @author: C.L.
  *
@@ -24,6 +24,7 @@
 
 #if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC optimize("O3,unroll-loops,inline-functions")
+// Separate opt-in: fast-math drops NaN/Inf and reassociates FP.
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-result"
   #if defined(__x86_64__) && !defined(__MINGW32__) && !defined(__MINGW64__)
@@ -78,7 +79,6 @@
 //===----------------------------------------------------------------------===//
 /* Debug and Assertion Policy */
 
-// LOCAL builds resolve "debug.h" from libs/ (outside templates/) via -Ilibs.
 #ifdef LOCAL
   #include "debug.h"
 #else
@@ -242,6 +242,11 @@ using VecPairI64 = Vec<PairI64>;
 //===----------------------------------------------------------------------===//
 /* Extended Type Traits */
 
+template <typename To>
+[[gnu::always_inline]] constexpr To as(auto&& x) noexcept {
+  return static_cast<To>(std::forward<decltype(x)>(x));
+}
+
 namespace cp {
 
 template <class T>
@@ -286,23 +291,23 @@ using make_unsigned_t = typename detail::make_unsigned<remove_cvref_t<T>>::type;
 namespace detail {
 
 template <class T, bool = std::is_integral_v<remove_cvref_t<T>> && !std::is_same_v<remove_cvref_t<T>, bool>>
-struct loop_arg {
+struct LoopArg {
   using type = remove_cvref_t<T>;
 };
 
 template <class T>
-struct loop_arg<T, true> {
+struct LoopArg<T, true> {
   using type = std::make_signed_t<remove_cvref_t<T>>;
 };
 
 } // namespace detail
 
 template <class... Ts>
-using loop_t = std::common_type_t<I32, typename detail::loop_arg<Ts>::type...>;
+using LoopT = std::common_type_t<I32, typename detail::LoopArg<Ts>::type...>;
 
 template <class... Ts>
-struct loop {
-  using T = loop_t<Ts...>;
+struct Loop {
+  using T = LoopT<Ts...>;
 
   template <class X>
   [[gnu::always_inline]] static constexpr T val(X x) noexcept {
@@ -322,11 +327,13 @@ template <class R>
 
 } // namespace cp
 
+#define CP_ENABLE_SHORT_MACROS 1
+
 //===----------------------------------------------------------------------===//
 /* Advanced Macro System */
 
 // Advanced FOR loop system:
-#define CP_LOOP(...) cp::loop<__VA_ARGS__>
+#define CP_LOOP(...) cp::Loop<__VA_ARGS__>
 #define CP_VAL(x, ...) CP_LOOP(__VA_ARGS__)::val(x)
 
 #define FOR1(a) \
@@ -377,25 +384,6 @@ template <class R>
 #define UNIQUE(x) (std::ranges::sort(x), x.erase(std::ranges::unique(x).begin(), x.end()), x.shrink_to_fit())
 #define LB(c, x) (I64) std::distance((c).begin(), std::ranges::lower_bound(c, x))
 #define UB(c, x) (I64) std::distance((c).begin(), std::ranges::upper_bound(c, x))
-#define SUM(x) std::accumulate(all(x), std::iter_value_t<decltype((x).begin())>{})
-#define MIN(x)                                       \
-  ([&]() -> decltype(auto) {                         \
-    auto&& _cp_min_range = (x);                      \
-    if (std::ranges::empty(_cp_min_range)) {         \
-      my_assert(false && "MIN(): empty range.");     \
-      std::abort();                                  \
-    }                                                \
-    return *std::ranges::min_element(_cp_min_range); \
-  }())
-#define MAX(x)                                       \
-  ([&]() -> decltype(auto) {                         \
-    auto&& _cp_max_range = (x);                      \
-    if (std::ranges::empty(_cp_max_range)) {         \
-      my_assert(false && "MAX(): empty range.");     \
-      std::abort();                                  \
-    }                                                \
-    return *std::ranges::max_element(_cp_max_range); \
-  }())
 
 // Y-combinator for recursive lambdas:
 template <class F>
@@ -416,17 +404,12 @@ template <class F>
   return YCombinator<std::decay_t<F>>{std::forward<F>(fn)};
 }
 
-// Type-safe cast alias:
-template <typename To>
-[[gnu::always_inline]] constexpr To as(auto&& x) noexcept {
-  return static_cast<To>(std::forward<decltype(x)>(x));
-}
-
 //===----------------------------------------------------------------------===//
 /* Lightweight Stopwatch Utility */
 
 struct Stopwatch {
-  using Clock = std::chrono::high_resolution_clock;
+  // Not high_resolution_clock: it may alias system_clock and jump backwards.
+  using Clock = std::chrono::steady_clock;
   Clock::time_point start;
 
   Stopwatch() : start(Clock::now()) {}
@@ -462,7 +445,7 @@ void write(const T& x) { std::cout << x; }
 #define CP_IO_COMPOSITE_CONTEXT 1
 
 //===----------------------------------------------------------------------===//
-/* Composite I/O Overloads (pair / vector / tuple) */
+/* Composite I/O Overloads */
 
 template <class T, class U>
 void read(std::pair<T, U>&);
