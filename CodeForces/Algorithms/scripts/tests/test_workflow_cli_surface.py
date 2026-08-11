@@ -14,8 +14,13 @@ commit — the diff is then the record of the interface change.
 from __future__ import annotations
 
 import argparse
+import re
+from pathlib import Path
 
+from workflow_manager_core.constants import ALLOWED_FUNCTIONS
 from workflow_manager_core.parser import build_parser
+
+CORE_DIR = Path(__file__).resolve().parents[1] / "workflow_manager_core"
 
 EXPECTED_SURFACE: dict[str, list[str]] = {
     "archive": ["--help", "-h"],
@@ -114,6 +119,40 @@ def test_each_subcommand_exposes_exactly_its_expected_flags():
     actual = _actual_surface()
     for name, expected in sorted(EXPECTED_SURFACE.items()):
         assert actual[name] == sorted(expected), f"option surface drifted for '{name}'"
+
+
+def _dispatched_functions() -> set[str]:
+    """Every cpp-tools function name the command modules can actually send."""
+
+    sources = ["commands.py", "workflows.py", "presets.py"]
+    dispatched: set[str] = set()
+    for name in sources:
+        text = (CORE_DIR / name).read_text(encoding="utf-8")
+        dispatched |= set(re.findall(r'_cpp_handler\(\s*"(cpp\w+)"', text))
+        dispatched |= set(re.findall(r'run_step_with_policy\(\s*\w+,\s*\w+,\s*"(cpp\w+)"', text))
+        dispatched |= set(re.findall(r'run_cpp\(\s*"(cpp\w+)"', text))
+        dispatched |= set(re.findall(r'\.run\(\s*"(cpp\w+)"', text))
+    return dispatched
+
+
+def test_allowlist_matches_exactly_what_the_cli_dispatches():
+    """The zsh allowlist is a gate, not a catalogue of cpp-tools.
+
+    An entry no ``CommandSpec`` can reach widens what the wrapper will run
+    without giving the CLI anything, and a dispatched function missing from
+    the set fails at runtime with "function not allowlisted". Both directions
+    are checked here so the two lists cannot drift apart again.
+    """
+
+    dispatched = _dispatched_functions()
+
+    assert dispatched, "dispatch scan found nothing — the regexes have gone stale"
+    assert ALLOWED_FUNCTIONS - dispatched == set(), (
+        f"allowlisted but unreachable: {sorted(ALLOWED_FUNCTIONS - dispatched)}"
+    )
+    assert dispatched - ALLOWED_FUNCTIONS == set(), (
+        f"dispatched but not allowlisted: {sorted(dispatched - ALLOWED_FUNCTIONS)}"
+    )
 
 
 def test_every_subcommand_has_a_handler_bound():

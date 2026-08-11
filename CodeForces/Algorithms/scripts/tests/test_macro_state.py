@@ -26,7 +26,7 @@ def _apply(*lines: str) -> MacroValueMap:
     return state
 
 
-# ------------------------------ Object-like ---------------------------------- #
+# ------------------------------- Object-like -------------------------------- #
 
 
 def test_bare_define_is_worth_one():
@@ -60,7 +60,7 @@ def test_inline_comments_are_stripped_from_the_value():
     assert _apply("#define CP_B 5 /* five */") == {"CP_B": 5}
 
 
-# ----------------------------- Function-like --------------------------------- #
+# ------------------------------ Function-like ------------------------------- #
 
 
 def test_function_like_macro_is_opaque_regardless_of_its_body():
@@ -99,7 +99,7 @@ def test_a_space_before_the_paren_makes_it_object_like():
     assert _apply("#define CP_FOO(x) 5") == {"CP_FOO": None}
 
 
-# ------------------- Pipeline and engine agree on one source ----------------- #
+# ----------------- Pipeline and engine agree on one source ------------------ #
 
 
 def test_pipeline_extraction_matches_the_engine_on_function_like_macros():

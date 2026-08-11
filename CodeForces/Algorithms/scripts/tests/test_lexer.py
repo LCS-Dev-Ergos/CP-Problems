@@ -60,7 +60,7 @@ def test_does_not_match_nested_parentheses():
     assert _matched("g(h(1)) {") is None
 
 
-# ------------------------------- Complexity --------------------------------- #
+# -------------------------------- Complexity -------------------------------- #
 
 
 def test_long_whitespace_run_stays_linear():

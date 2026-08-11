@@ -94,6 +94,11 @@ CMAKE_BUILD_PRESET_CHOICES: tuple[str, ...] = tuple(e.value for e in BuildPreset
 TARGET_RE = re.compile(r"^[A-Za-z]\w*$")
 CONTEST_SEGMENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
+# The gate the zsh wrapper is rendered from: exactly the cpp-tools functions
+# this CLI dispatches, and nothing else. Entries no CommandSpec can reach
+# widen what the wrapper will run without giving the CLI anything, so a
+# regression test keeps this set equal to the dispatched set — adding a
+# function here without a subcommand to use it will fail that test.
 ALLOWED_FUNCTIONS = {
     "cpparchive",
     "cppbatch",
@@ -105,12 +110,9 @@ ALLOWED_FUNCTIONS = {
     "cppdeepclean",
     "cppdelete",
     "cppdiag",
-    "cppforcego",
     "cppfull",
-    "cppgcc",
     "cppgo",
     "cpphelp",
-    "cppi",
     "cppinfo",
     "cppinit",
     "cppjudge",
@@ -121,8 +123,6 @@ ALLOWED_FUNCTIONS = {
     "cppsubmit",
     "cpptestsubmit",
     "cppwatch",
-    "cppclang",
-    "cppprof",
 }
 
 INPUT_FILE_HELP = "input filename inside input_cases/"
