@@ -21,6 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
+from _lib.cli import run_cli
 from module_runtime import (
     DEFAULT_PROBE_JOBS,
     CompilationOutcome,
@@ -594,4 +595,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_cli(main))

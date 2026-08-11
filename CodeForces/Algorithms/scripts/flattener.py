@@ -8,7 +8,8 @@ build scripts). All real logic lives in ``flattener_pipeline.cli:main``.
 
 from __future__ import annotations
 
+from _lib.cli import run_cli
 from flattener_pipeline.cli import main
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_cli(main))

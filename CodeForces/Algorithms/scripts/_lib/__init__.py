@@ -12,6 +12,7 @@ directly — the leading underscore signals an internal package boundary.
 
 from __future__ import annotations
 
+from .cli import EXIT_ERROR, EXIT_INTERRUPTED, EXIT_SIGPIPE, run_cli
 from .process import (
     DEFAULT_PROCESS_TIMEOUT_SECONDS,
     ProcessRequest,
@@ -22,8 +23,12 @@ from .process import (
 
 __all__ = [
     "DEFAULT_PROCESS_TIMEOUT_SECONDS",
+    "EXIT_ERROR",
+    "EXIT_INTERRUPTED",
+    "EXIT_SIGPIPE",
     "ProcessRequest",
     "ProcessResult",
     "Runnable",
     "run_capture",
+    "run_cli",
 ]

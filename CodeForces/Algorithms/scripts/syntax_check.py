@@ -18,6 +18,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from _lib.cli import run_cli
 from _lib.process import ProcessRequest, run_capture
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -146,4 +147,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_cli(main))

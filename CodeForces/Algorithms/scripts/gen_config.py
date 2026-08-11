@@ -12,9 +12,10 @@ changes; the output is committed alongside the source.
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
 
+from _lib.cli import run_cli
 from profile_registry import (
     DEFAULT_PROFILES_PATH,
     TEMPLATES_DIR,
@@ -113,9 +114,28 @@ def _write_if_changed(path: Path, content: str) -> bool:
     return True
 
 
+def build_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser.
+
+    The generator takes no options — the parser exists so that ``--help``
+    answers "what does this write, and from where" without reading the source.
+    """
+
+    return argparse.ArgumentParser(
+        description=(
+            "Regenerate the C++ template config headers from "
+            f"{DEFAULT_PROFILES_PATH.name}. Writes "
+            f"{CONFIG_OUTPUT.name}, {BASE_PROFILES_OUTPUT.name} and "
+            f"{BASE_FEATURES_OUTPUT.name} under templates/, and only when the "
+            "rendered content differs. Run via `make regen-templates`."
+        ),
+    )
+
+
 def main() -> int:
     """Regenerate config/profile/feature headers from ``templates/profiles.toml``."""
 
+    build_parser().parse_args()
     reset_cache()
     registry = load_registry(str(DEFAULT_PROFILES_PATH))
     changed = False
@@ -134,4 +154,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(run_cli(main))

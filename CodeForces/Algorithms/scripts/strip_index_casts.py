@@ -27,6 +27,8 @@ import sys
 from fnmatch import fnmatch
 from pathlib import Path
 
+from _lib.cli import run_cli
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCOPE = REPO_ROOT / "modules"
 
@@ -314,4 +316,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_cli(main))

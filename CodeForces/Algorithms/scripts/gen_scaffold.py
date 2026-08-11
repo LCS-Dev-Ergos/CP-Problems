@@ -10,9 +10,10 @@ from any profile without manual editing.
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
 
+from _lib.cli import run_cli
 from profile_registry import (
     DEFAULT_PROFILES_PATH,
     TEMPLATES_DIR,
@@ -110,9 +111,28 @@ def _write_if_changed(path: Path, content: str) -> bool:
     return True
 
 
+def build_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser.
+
+    The generator takes no options — the parser exists so that ``--help``
+    answers "what does this write, and from where" without reading the source.
+    """
+
+    return argparse.ArgumentParser(
+        description=(
+            "Regenerate the per-profile scaffold .cpp files from "
+            f"{DEFAULT_PROFILES_PATH.name}. Writes one file per [scaffold.*] "
+            f"entry into {SCAFFOLD_DIR.parent.name}/{SCAFFOLD_DIR.name}/, and "
+            "only when the rendered content differs. Run via "
+            "`make regen-templates`."
+        ),
+    )
+
+
 def main() -> int:
     """Regenerate all scaffold sources from ``templates/profiles.toml``."""
 
+    build_parser().parse_args()
     reset_cache()
     registry: ProfileRegistry = load_registry(str(DEFAULT_PROFILES_PATH))
     changed = False
@@ -126,4 +146,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(run_cli(main))

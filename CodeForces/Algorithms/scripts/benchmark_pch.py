@@ -18,6 +18,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal
 
+from _lib.cli import run_cli
 from _lib.process import ProcessRequest, run_capture
 
 BenchmarkRecommendation = Literal["disable_default_pch", "keep_default_pch"]
@@ -372,8 +373,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except BenchmarkError as exc:
-        print(f"Error: {exc}")
-        raise SystemExit(1) from exc
+    raise SystemExit(run_cli(main, also_catch=(BenchmarkError,)))
