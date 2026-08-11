@@ -11,6 +11,7 @@ from any profile without manual editing.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
 
 from _lib.cli import run_cli
@@ -129,10 +130,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """Regenerate all scaffold sources from ``templates/profiles.toml``."""
 
-    build_parser().parse_args()
+    build_parser().parse_args(argv)
     reset_cache()
     registry: ProfileRegistry = load_registry(str(DEFAULT_PROFILES_PATH))
     changed = False

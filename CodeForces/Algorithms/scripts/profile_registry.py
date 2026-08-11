@@ -5,8 +5,9 @@ Parses the central profile registry into immutable dataclasses exposing:
 ``config_defaults`` (base vs strict CP_* values), ``io_profiles`` (per
 ``CP_IO_PROFILE_*`` ``NEED_*`` lists + extra defines), feature headers
 (``NEED_*`` to template headers), and scaffold recipes. Consumers
-(``flattener_pipeline.macros``, ``gen_config``, ``gen_scaffold``) reach the
-registry exclusively through this loader so schema changes stay in one place.
+(``flattener_pipeline.macro_resolution``, ``gen_config``, ``gen_scaffold``)
+reach the registry exclusively through this loader, so schema changes stay
+in one place.
 """
 
 from __future__ import annotations

@@ -365,7 +365,9 @@ class GeneratedArtefactStalenessTests(unittest.TestCase):
         module = importlib.import_module(generator_module_name)
         backups = {p: p.read_text(encoding="utf-8") for p in output_paths if p.is_file()}
         try:
-            rc = module.main()
+            # Explicit empty argv: the generators parse arguments now, and an
+            # in-process ``main()`` would otherwise inherit pytest's sys.argv.
+            rc = module.main([])
             self.assertEqual(rc, 0)
             for path in output_paths:
                 self.assertTrue(path.is_file(), f"{path} missing after regenerate")

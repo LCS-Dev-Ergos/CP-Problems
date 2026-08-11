@@ -1,22 +1,32 @@
-"""High-level macro extraction from user source.
+"""Resolution of the effective macro state for one user source file.
 
 ``extract_macro_values_from_source`` walks the source prefix before
 ``templates/Base.hpp``, applies a conservative folder to skip unevaluable
 ``#if`` blocks, then layers in defaults from ``profile_registry`` (strict
 selection) and the per-IO-profile expansion of ``CP_IO_PROFILE_*``.
 
-This is the pipeline-level wrapper around ``flattener_core.macros`` — the
-latter handles individual ``#define`` lines, the former composes them
-against the project's profile registry.
+Named ``macro_resolution`` rather than ``macros`` because a second module by
+that name already exists one layer down. The division of labor is real but it
+was not legible from the file names, and the two had quietly grown separate
+implementations of the same ``#define`` parsing:
+
+- :mod:`flattener_core.macros` owns the *table* — what a single ``#define``
+  or ``#undef`` line does to the macro state. This module calls into it.
+- this module owns the *composition* — reading the user's prefix, deciding
+  which defines are reachable, and layering the registry's profile defaults
+  and IO-profile expansion on top.
 """
 
 from __future__ import annotations
 
-import re
 from typing import TextIO
 
 from flattener_core.lexer import strip_non_code
-from flattener_core.macros import MacroValueMap
+from flattener_core.macros import (
+    DEFINE_DIRECTIVE_RE,
+    MacroValueMap,
+    update_macro_state_from_line,
+)
 from flattener_core.preprocessor import (
     ELSE_OR_ELIF_DIRECTIVE_RE,
     ENDIF_DIRECTIVE_RE,
@@ -24,36 +34,6 @@ from flattener_core.preprocessor import (
     fold_simple_preprocessor_conditionals,
 )
 from profile_registry import load_registry
-
-_MACRO_DEFINE_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)(?:\s+(.*?))?\s*$")
-_MACRO_UNDEF_RE = re.compile(r"^\s*#\s*undef\s+([A-Za-z_]\w*)\s*$")
-_NUMERIC_LITERAL_RE = re.compile(r"^[+-]?(?:0|[1-9]\d*|0[xX][0-9A-Fa-f]+)(?:[uUlL]{0,3})?$")
-
-def _parse_macro_value(value_expr: str | None, macro_values: MacroValueMap) -> int | None:
-    """Parse a simple ``#define`` value into ``int`` / ``None``.
-
-    Strips inline comments and trailing type suffixes (e.g. ``u``, ``L``).
-    Falls back to looking up the token in ``macro_values`` when it is not a
-    numeric literal.
-    """
-
-    if value_expr is None:
-        return 1
-
-    token = value_expr.split("//", 1)[0]
-    token = token.split("/*", 1)[0].strip()
-    if not token:
-        return 1
-
-    token = token.split()[0]
-    if _NUMERIC_LITERAL_RE.fullmatch(token):
-        suffix_trimmed = re.sub(r"[uUlL]+$", "", token)
-        try:
-            return int(suffix_trimmed, 0)
-        except ValueError:
-            return None
-
-    return macro_values.get(token)
 
 
 def extract_macro_values_from_source(
@@ -95,22 +75,16 @@ def extract_macro_values_from_source(
             continue
 
         if depth > 0:
-            define_match = _MACRO_DEFINE_RE.match(stripped)
+            define_match = DEFINE_DIRECTIVE_RE.match(stripped)
             if define_match:
                 skipped.append(define_match.group(1))
             continue
 
-        undef_match = _MACRO_UNDEF_RE.match(stripped)
-        if undef_match:
-            macro_values.pop(undef_match.group(1), None)
-            continue
-
-        define_match = _MACRO_DEFINE_RE.match(stripped)
-        if not define_match:
-            continue
-
-        name, value_expr = define_match.group(1), define_match.group(2)
-        macro_values[name] = _parse_macro_value(value_expr, macro_values)
+        # ``update_macro_state_from_line`` owns both ``#define`` and ``#undef``
+        # and ignores anything else, so this one call replaces the pair of
+        # directive branches that used to live here against a private copy of
+        # the same regexes.
+        update_macro_state_from_line(macro_values, stripped)
 
     if warn_stream is not None and skipped:
         warn_stream.write(

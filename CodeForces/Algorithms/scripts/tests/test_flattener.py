@@ -35,7 +35,7 @@ from flattener_core.includes import (  # noqa: E402
 )
 from flattener_core.lexer import extract_identifiers, strip_comments, strip_non_code  # noqa: E402
 from flattener_core.preprocessor import fold_simple_preprocessor_conditionals  # noqa: E402
-from flattener_pipeline.macros import extract_macro_values_from_source  # noqa: E402
+from flattener_pipeline.macro_resolution import extract_macro_values_from_source  # noqa: E402
 from need_resolver import extract_need_macros_from_source, load_need_mapping  # noqa: E402
 
 

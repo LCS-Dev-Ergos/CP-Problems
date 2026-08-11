@@ -24,9 +24,13 @@ import re
 MacroValueMap = dict[str, int | None]
 
 DEFINE_DIRECTIVE_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)\b")
-DEFINE_WITH_VALUE_RE = re.compile(
-    r"^\s*#\s*define\s+([A-Za-z_]\w*)(?:\s*\([^)]*\))?(?:\s+(.*?))?\s*$"
-)
+# Group 2 captures the parameter list of a function-like macro, so the caller
+# can tell ``#define F(x) 5`` from ``#define F 5``; group 3 is the body.
+# The ``(`` must follow the name with no space: per the C standard
+# ``#define F (x) 5`` is object-like with body ``(x) 5``, not a macro of one
+# parameter. Both spellings end up opaque, but the classification is the
+# thing this table is supposed to model correctly.
+DEFINE_WITH_VALUE_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)(\([^)]*\))?(?:\s+(.*?))?\s*$")
 UNDEF_DIRECTIVE_RE = re.compile(r"^\s*#\s*undef\s+([A-Za-z_]\w*)\s*$")
 INTEGER_LITERAL_RE = re.compile(r"^[+-]?(?:0|[1-9]\d*|0[xX][0-9A-Fa-f]+)(?:[uUlL]{0,3})?$")
 
@@ -68,6 +72,12 @@ def update_macro_state_from_line(macro_values: MacroValueMap, line: str) -> None
 
     Only simple numeric / identifier values are tracked; complex expressions
     are stored as ``None``.
+
+    A *function-like* macro is recorded as defined-but-opaque (``None``) no
+    matter what its body looks like. ``#define F(x) 5`` does not make ``F``
+    worth 5: in an ``#if`` the name is only expanded when followed by ``(``,
+    so folding ``#if F`` on the body would decide a guard on a value C never
+    computes. ``defined(F)`` must still be true, which ``None`` gives us.
     """
 
     stripped = line.strip()
@@ -83,7 +93,10 @@ def update_macro_state_from_line(macro_values: MacroValueMap, line: str) -> None
     if not define_match:
         return
 
-    name, value_expr = define_match.group(1), define_match.group(2)
+    name, params, value_expr = define_match.group(1, 2, 3)
+    if params is not None:
+        macro_values[name] = None
+        return
     if not value_expr:
         macro_values[name] = 1
         return
