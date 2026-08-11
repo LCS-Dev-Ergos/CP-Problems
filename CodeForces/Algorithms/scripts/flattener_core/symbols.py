@@ -5,6 +5,11 @@ class/struct/using/function names, deliberately ignoring namespace-internal
 helpers and template specializations so the resulting set stays a stable
 proxy for "what a downstream file might reference by name".
 
+Macro names are harvested too, and at any brace depth: the preprocessor does
+not respect scope, and a header whose entire public surface is macros (a
+feature module exposing only ``SUM``/``MIN``/``MAX``, say) would otherwise
+look symbol-less and be pruned away from a submission that uses it.
+
 ``collect_module_leaf_trigger_tokens`` builds the per-leaf token map used
 by the umbrella-module pruner in ``includes.inline_local_header``.
 """
@@ -20,6 +25,7 @@ from flattener_core.lexer import (
     USING_RE,
     strip_non_code,
 )
+from flattener_core.macros import DEFINE_DIRECTIVE_RE
 
 ModuleLeafTokenMap = dict[str, set[str]]
 
@@ -37,6 +43,13 @@ def extract_public_symbols(header_content: str) -> set[str]:
 
     for raw in content.splitlines():
         line = raw.strip()
+
+        # Macros are depth-independent: `#define` inside a namespace block still
+        # exports a name any downstream file can spell.
+        define_match = DEFINE_DIRECTIVE_RE.match(line)
+        if define_match:
+            symbols.add(define_match.group(1))
+
         if depth == 0 and line:
             match = STRUCT_CLASS_RE.match(line)
             if match:
