@@ -294,7 +294,12 @@ def _arith(a: int | None, b: int | None, op: str) -> int | None:
         return a * b
     if b == 0:  # division/modulo by zero is undecidable here
         return None
-    return a // b if op == "/" else a % b
+    # C/C++ integer division truncates toward zero; Python's ``//`` floors and
+    # its ``%`` takes the sign of the divisor. Both differ from the
+    # preprocessor on negative operands (C: -7/2 == -3, -7%2 == -1), so the
+    # quotient is computed explicitly and the remainder derived from it.
+    quotient = -(-a // b) if (a < 0) != (b < 0) else a // b
+    return quotient if op == "/" else a - b * quotient
 
 
 def evaluate_expression(

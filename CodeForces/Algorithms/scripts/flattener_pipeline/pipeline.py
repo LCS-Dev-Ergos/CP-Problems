@@ -68,7 +68,7 @@ def _render_resolved_prelude(blocks: list[str], macro_values: MacroValueMap) -> 
 
     lines: list[str] = []
     for name in sorted(_referenced_condition_macros(blocks)):
-        if not (name.startswith("CP_") or name.startswith("NEED_")):
+        if not name.startswith(("CP_", "NEED_")):
             continue
         if name not in macro_values:
             continue

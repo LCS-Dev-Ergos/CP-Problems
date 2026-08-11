@@ -28,9 +28,7 @@ NEED_FAST_IO = "NEED_FAST_IO"
 
 # ``target`` is removed when any blocker is present. The same rules drive
 # Python-side flattening and generated C++ profile normalization.
-NEED_SHADOW_RULES: tuple[tuple[str, frozenset[str]], ...] = (
-    (NEED_IO, frozenset({NEED_FAST_IO})),
-)
+NEED_SHADOW_RULES: tuple[tuple[str, frozenset[str]], ...] = ((NEED_IO, frozenset({NEED_FAST_IO})),)
 
 
 @dataclass(frozen=True, slots=True)
@@ -345,12 +343,45 @@ def _scaffold(name: str, payload: dict[str, Any], known_io: frozenset[str]) -> S
     )
 
 
-def _build(payload: dict[str, Any]) -> ProfileRegistry:
+# Tables without which the registry cannot answer the questions its consumers
+# ask. Every one of them was previously optional, so a truncated profiles.toml
+# loaded "successfully" into an empty registry and surfaced three hops later as
+# an empty argparse ``choices`` tuple or a bare "Unable to derive NEED_*
+# mapping". Fail here instead, naming the file and the missing table.
+_REQUIRED_TABLES: tuple[str, ...] = ("defaults", "io_profile", "feature", "scaffold")
+
+
+def _sub_tables(payload: dict[str, Any], key: str) -> dict[str, dict[str, Any]]:
+    """Return ``payload[key]`` as a table-of-tables, rejecting other shapes.
+
+    Writing ``[scaffold]`` where ``[scaffold.base]`` was meant leaves a table
+    whose values are plain scalars/lists. Without this guard the per-entry
+    builders reach for ``.get`` on those values and raise ``AttributeError``,
+    which reads like a tool crash rather than a config error.
+    """
+
+    table = payload.get(key) or {}
+    if not isinstance(table, dict):
+        raise ValueError(f"{key}: expected a table of named entries")
+    for name, entry in table.items():
+        if not isinstance(entry, dict):
+            raise ValueError(f"{key}.{name}: expected a table (got {type(entry).__name__})")
+    return table
+
+
+def _build(payload: dict[str, Any], *, source: str | None = None) -> ProfileRegistry:
     """Build a validated registry from a parsed TOML payload."""
 
     schema = payload.get("schema_version", 0)
     if schema != 1:
         raise ValueError(f"unsupported schema_version: {schema}")
+
+    where = f" in {source}" if source else ""
+    missing = [name for name in _REQUIRED_TABLES if not payload.get(name)]
+    if missing:
+        raise ValueError(
+            f"profiles.toml is missing required non-empty table(s){where}: {', '.join(missing)}"
+        )
 
     defaults_payload = dict(payload.get("defaults", {}) or {})
     strict = defaults_payload.pop("strict_overrides", {}) or {}
@@ -359,15 +390,12 @@ def _build(payload: dict[str, Any]) -> ProfileRegistry:
         strict_overrides=_int_map(strict, where="defaults.strict_overrides"),
     )
 
-    io_payload = payload.get("io_profile", {}) or {}
-    io_profiles = {n: _io(n, b) for n, b in io_payload.items()}
+    io_profiles = {n: _io(n, b) for n, b in _sub_tables(payload, "io_profile").items()}
     known_io = frozenset(io_profiles.keys())
 
-    feature_payload = payload.get("feature", {}) or {}
-    features = {n: _feature(n, b) for n, b in feature_payload.items()}
+    features = {n: _feature(n, b) for n, b in _sub_tables(payload, "feature").items()}
 
-    scaffold_payload = payload.get("scaffold", {}) or {}
-    scaffolds = {n: _scaffold(n, b, known_io) for n, b in scaffold_payload.items()}
+    scaffolds = {n: _scaffold(n, b, known_io) for n, b in _sub_tables(payload, "scaffold").items()}
 
     return ProfileRegistry(
         schema_version=schema,
@@ -385,7 +413,7 @@ def load_registry(path: str | None = None) -> ProfileRegistry:
 
     resolved = Path(path) if path else DEFAULT_PROFILES_PATH
     with open(resolved, "rb") as f:
-        return _build(tomllib.load(f))
+        return _build(tomllib.load(f), source=str(resolved))
 
 
 def reset_cache() -> None:

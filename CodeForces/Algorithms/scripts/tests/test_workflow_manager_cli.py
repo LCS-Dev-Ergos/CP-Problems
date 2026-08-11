@@ -178,6 +178,56 @@ def test_explicit_argument_beats_env_flag(
     assert runner.login_shell is True
 
 
+@_zsh_required
+def test_auto_confirm_deepclean_is_not_inherited_from_the_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    make_stub_cpp_tools: Callable[..., Path],
+) -> None:
+    """An ambient ``CP_AUTO_CONFIRM_DEEPCLEAN=1`` must not reach the wrapper.
+
+    ``run_capture`` layers overrides onto a copy of ``os.environ``, so the
+    runner has to write the flag on every call rather than only when it is
+    enabled — otherwise the surrounding shell could pre-answer a destructive
+    confirmation the Python caller never asked for.
+    """
+
+    monkeypatch.setenv("CP_AUTO_CONFIRM_DEEPCLEAN", "1")
+    stub = make_stub_cpp_tools(cppinfo='print -- "seen=${CP_AUTO_CONFIRM_DEEPCLEAN:-unset}"')
+    runner = CppToolsRunner(
+        cp_tools_script=stub,
+        cwd=tmp_path,
+        default_timeout=20,
+        login_shell=False,
+    )
+
+    result = runner.run("cppinfo", auto_confirm_deepclean=False)
+    assert result.returncode == 0
+    assert "seen=0" in result.stdout
+
+
+@_zsh_required
+def test_auto_confirm_deepclean_is_forwarded_when_requested(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    make_stub_cpp_tools: Callable[..., Path],
+) -> None:
+    """The opt-in path must still reach the wrapper from a clean environment."""
+
+    monkeypatch.delenv("CP_AUTO_CONFIRM_DEEPCLEAN", raising=False)
+    stub = make_stub_cpp_tools(cppinfo='print -- "seen=${CP_AUTO_CONFIRM_DEEPCLEAN:-unset}"')
+    runner = CppToolsRunner(
+        cp_tools_script=stub,
+        cwd=tmp_path,
+        default_timeout=20,
+        login_shell=False,
+    )
+
+    result = runner.run("cppinfo", auto_confirm_deepclean=True)
+    assert result.returncode == 0
+    assert "seen=1" in result.stdout
+
+
 class WrapperTemplateTests(unittest.TestCase):
     """Cover the externalized zsh wrapper loaded via ``importlib.resources``."""
 

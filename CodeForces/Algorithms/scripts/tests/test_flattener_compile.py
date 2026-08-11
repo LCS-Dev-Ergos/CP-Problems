@@ -44,6 +44,7 @@ def _bits_capable_compiler() -> str | None:
                 text=True,
                 capture_output=True,
                 timeout=30,
+                check=False,
             )
         except (OSError, subprocess.TimeoutExpired):
             continue
@@ -68,6 +69,7 @@ def _compile_submission(source: str) -> subprocess.CompletedProcess[str]:
         text=True,
         capture_output=True,
         timeout=60,
+        check=False,
     )
 
 

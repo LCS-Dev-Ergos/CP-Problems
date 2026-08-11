@@ -14,6 +14,7 @@ import textwrap
 
 from flattener_core.macros import is_authoritative_macro
 from flattener_core.ppexpr import (
+    evaluate_expression,
     evaluate_simple_if_expression,
     is_macro_defined,
 )
@@ -25,6 +26,7 @@ def ev(expr, state=None, *, closed=False):
 
 
 # --------------------------- Expression evaluator --------------------------- #
+
 
 def test_literals_and_unary():
     assert ev("1") is True
@@ -44,6 +46,38 @@ def test_comparisons_and_arithmetic():
     assert ev("2 - 2") is False
     assert ev("CP_V == 1", {"CP_V": 1}) is True
     assert ev("CP_V == 1", {"CP_V": 2}) is False
+
+
+def test_division_truncates_toward_zero_like_c():
+    """C integer division truncates; Python's ``//`` floors. Follow C.
+
+    ``#if`` arithmetic is evaluated with C semantics, so ``-7 / 2`` is -3 and
+    ``-7 % 2`` is -1. Getting this wrong folds a guard to the wrong arm with
+    full confidence, which is worse than returning UNKNOWN.
+    """
+
+    assert evaluate_expression("-7 / 2", {}) == -3
+    assert evaluate_expression("7 / -2", {}) == -3
+    assert evaluate_expression("-7 / -2", {}) == 3
+    assert evaluate_expression("7 / 2", {}) == 3
+    assert evaluate_expression("-6 / 2", {}) == -3
+    assert evaluate_expression("-1 / 2", {}) == 0
+
+
+def test_remainder_takes_the_sign_of_the_dividend_like_c():
+    """C's ``%`` follows the dividend; Python's follows the divisor."""
+
+    assert evaluate_expression("-7 % 2", {}) == -1
+    assert evaluate_expression("7 % -2", {}) == 1
+    assert evaluate_expression("-7 % -2", {}) == -1
+    assert evaluate_expression("7 % 2", {}) == 1
+    assert evaluate_expression("-6 % 2", {}) == 0
+    assert evaluate_expression("-1 % 2", {}) == -1
+
+
+def test_division_by_zero_stays_unknown():
+    assert evaluate_expression("1 / 0", {}) is None
+    assert evaluate_expression("1 % 0", {}) is None
 
 
 def test_known_and_opaque_macros():

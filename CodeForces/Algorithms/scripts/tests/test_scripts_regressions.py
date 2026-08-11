@@ -23,7 +23,6 @@ import sys
 import tempfile
 import textwrap
 import unittest
-import warnings
 from pathlib import Path
 from typing import ClassVar
 from unittest import mock
@@ -582,13 +581,12 @@ class ScriptRegressionTests(unittest.TestCase):
                 self.assertTrue((untouched_round / name).is_file())
 
 
-class ModuleRuntimeShimTests(unittest.TestCase):
-    """Compatibility shim: underscore-prefixed module_tester names still resolve.
+class ModuleRuntimeOwnershipTests(unittest.TestCase):
+    """``module_runtime`` owns the shared toolchain helpers outright.
 
-    ``module_tester`` re-exports a handful of helpers that were renamed when
-    they migrated to ``module_runtime``. The shim emits ``DeprecationWarning``
-    on access; these tests pin that contract so the shim cannot quietly
-    disappear before in-tree callers have all moved over.
+    The ``module_tester.__getattr__`` compatibility shim that used to
+    re-export them under their old underscore names has been removed; this
+    guard keeps callers from drifting back to the private spelling.
     """
 
     def test_no_internal_caller_imports_private_module_tester_names(self) -> None:
@@ -606,28 +604,19 @@ class ModuleRuntimeShimTests(unittest.TestCase):
                 offending.append(str(path.relative_to(scripts_dir)))
         self.assertEqual(offending, [], msg="should import from module_runtime instead")
 
-    def test_legacy_underscore_names_resolve_with_deprecation_warning(self) -> None:
-        """External callers using the old names get the public symbol + a warning."""
-
-        module_runtime = importlib.import_module("module_runtime")
-        module_tester = importlib.import_module("module_tester")
-
-        with warnings.catch_warnings(record=True) as captured:
-            warnings.simplefilter("always")
-            fn = module_tester._load_template_config
-        self.assertIs(fn, module_runtime.load_tooling_config)
-        self.assertTrue(
-            any(issubclass(w.category, DeprecationWarning) for w in captured),
-            msg="accessing the legacy name must raise a DeprecationWarning",
-        )
-
-    def test_unknown_attribute_still_raises_attribute_error(self) -> None:
-        """The shim must not swallow unrelated lookups."""
+    def test_legacy_underscore_names_are_gone(self) -> None:
+        """The retired shim must not resurface: old names raise AttributeError."""
 
         module_tester = importlib.import_module("module_tester")
 
-        with self.assertRaises(AttributeError):
-            _ = module_tester._does_not_exist
+        for legacy in (
+            "_load_template_config",
+            "_select_compiler",
+            "_build_compiler_flags",
+            "_compiler_supports_std_headers",
+        ):
+            with self.subTest(name=legacy), self.assertRaises(AttributeError):
+                getattr(module_tester, legacy)
 
 
 class StrEnumChoicesTests(unittest.TestCase):

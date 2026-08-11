@@ -124,11 +124,16 @@ class CppToolsRunner:
             function,
             *args,
         ]
+        # Both flags are written unconditionally. ``run_capture`` layers
+        # overrides over a copy of ``os.environ``, so merely *omitting* the
+        # auto-confirm key would let an inherited ``CP_AUTO_CONFIRM_DEEPCLEAN=1``
+        # reach the wrapper and answer a destructive prompt the Python caller
+        # never authorized. The decision belongs to this call, not the ambient
+        # environment.
         env_overrides: dict[str, str] = {
             "CP_QUIET_LOAD": "1" if self.quiet_load else "0",
+            "CP_AUTO_CONFIRM_DEEPCLEAN": "1" if auto_confirm_deepclean else "0",
         }
-        if auto_confirm_deepclean:
-            env_overrides["CP_AUTO_CONFIRM_DEEPCLEAN"] = "1"
 
         effective_timeout = float(timeout if timeout is not None else self.default_timeout)
         result = run_capture(

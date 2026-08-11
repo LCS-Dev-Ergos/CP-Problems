@@ -113,11 +113,9 @@ def load_need_mapping(base_header: Path) -> OrderedDict[str, list[str]]:
     focused parser tests can still pass synthetic headers.
     """
 
-    try:
-        is_canonical_base = base_header.resolve() == (TEMPLATES_DIR / "Base.hpp").resolve()
-    except FileNotFoundError:
-        is_canonical_base = False
-    if is_canonical_base:
+    # ``Path.resolve()`` is non-strict by default and never raises for a
+    # missing path, so this comparison is safe on a header that does not exist.
+    if base_header.resolve() == (TEMPLATES_DIR / "Base.hpp").resolve():
         return load_registry().feature_headers()
     return _parse_need_mapping_from_header(base_header)
 

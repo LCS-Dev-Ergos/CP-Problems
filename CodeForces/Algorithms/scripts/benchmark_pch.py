@@ -146,6 +146,7 @@ def _write_new_target(round_dir: Path, target_name: str) -> None:
 def _benchmark_mode(
     round_dir: Path,
     target: str,
+    *,
     compiler: str,
     pch_enabled: bool,
     algorithms_dir: Path,
@@ -234,6 +235,7 @@ def _benchmark_mode(
 def _build_result(
     round_dir: Path,
     target: str,
+    *,
     compiler: str,
     threshold_sec: float,
     on_metrics: BenchmarkMetrics,
@@ -332,27 +334,27 @@ def main() -> int:
     on_metrics = _benchmark_mode(
         round_dir,
         target,
-        ns.compiler,
-        True,
-        algorithms_dir,
-        ns.verbose,
+        compiler=ns.compiler,
+        pch_enabled=True,
+        algorithms_dir=algorithms_dir,
+        verbose=ns.verbose,
     )
     off_metrics = _benchmark_mode(
         round_dir,
         target,
-        ns.compiler,
-        False,
-        algorithms_dir,
-        ns.verbose,
+        compiler=ns.compiler,
+        pch_enabled=False,
+        algorithms_dir=algorithms_dir,
+        verbose=ns.verbose,
     )
 
     result = _build_result(
         round_dir,
         target,
-        ns.compiler,
-        ns.threshold_sec,
-        on_metrics,
-        off_metrics,
+        compiler=ns.compiler,
+        threshold_sec=ns.threshold_sec,
+        on_metrics=on_metrics,
+        off_metrics=off_metrics,
     )
     payload = result.to_dict()
 

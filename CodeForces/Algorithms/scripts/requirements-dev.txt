@@ -1,0 +1,15 @@
+# Developer toolchain for Algorithms/scripts/.
+#
+# These are the versions `make check` is validated against. The scripts
+# themselves are never pip-installed and have no runtime dependencies beyond
+# the Python >= 3.11 standard library — this file pins the *checkers* only.
+#
+# The ruff bound is mirrored by `required-version` in pyproject.toml, so a
+# mismatched ruff fails fast with a clear message instead of emitting
+# findings for rules the ignore-list predates.
+#
+#   pip install -r requirements-dev.txt
+#
+ruff>=0.16,<0.17
+mypy>=1.11,<3
+pytest>=8,<9

@@ -17,7 +17,12 @@ import re
 IDENTIFIER_RE = re.compile(r"\b[A-Za-z_]\w*\b")
 STRUCT_CLASS_RE = re.compile(r"^\s*(?:template\s*<[^>]*>\s*)?(?:struct|class)\s+([A-Za-z_]\w*)\b")
 USING_RE = re.compile(r"^\s*using\s+([A-Za-z_]\w*)\b")
-FUNC_LIKE_RE = re.compile(r"([A-Za-z_]\w*)\s*\([^()]*\)\s*(?:const)?\s*(?:\{|$)")
+# ``(?:const\s*)?`` keeps the optional qualifier *inside* a single whitespace
+# run. The earlier ``\s*(?:const)?\s*`` spelling accepted the same language but
+# left two adjacent ``\s*`` to split a whitespace run between, which backtracks
+# quadratically on a long line that ends in spaces without ``{`` (~1.8s for a
+# 16 KB line). Matching behavior is unchanged — see test_lexer_func_like_re.
+FUNC_LIKE_RE = re.compile(r"([A-Za-z_]\w*)\s*\([^()]*\)\s*(?:const\s*)?(?:\{|$)")
 
 # fmt: off
 CPP_KEYWORDS = frozenset({

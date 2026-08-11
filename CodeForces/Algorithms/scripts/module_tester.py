@@ -7,9 +7,8 @@ through the shared ``_lib.process`` layer. Reports which combinations
 compile cleanly and which fail, so a regression in a template header is
 caught before any round depends on it.
 
-A thin ``module_runtime`` deprecation shim is preserved here for callers
-that still reach for the underscored helpers — emits ``DeprecationWarning``
-on use; will be removed once the in-tree imports are migrated.
+Toolchain discovery and the compiler invocation itself belong to
+``module_runtime``; this module only builds probes and reports on them.
 """
 
 from __future__ import annotations
@@ -18,8 +17,7 @@ import argparse
 import concurrent.futures
 import json
 import threading
-import warnings
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -30,7 +28,6 @@ from module_runtime import (
     CompilationOutcome,
     CompilerInvocation,
     build_compiler_flags,
-    compiler_supports_std_headers,
     load_tooling_config,
     parse_jobs_argument,
     select_compiler,
@@ -284,21 +281,32 @@ class ModuleTester:
         outcome = self._compiler_invocation.compile_source(test_content)
         return outcome.success, outcome.error or ""
 
-    def _available_candidates(self, candidates: Sequence[tuple[Any, ...]]) -> list[tuple[Any, ...]]:
-        """Filter heterogeneous (macros, description, [source]) candidate tuples."""
+    def _available_candidates(
+        self, candidates: Sequence[tuple[Any, ...]]
+    ) -> tuple[list[tuple[Any, ...]], list[str]]:
+        """Filter heterogeneous (macros, description, [source]) candidate tuples.
+
+        Returns the runnable entries plus a human-readable note per candidate
+        dropped for want of a NEED_* macro. A dropped candidate is real lost
+        coverage — a probe declared in this file that never compiles — so the
+        caller reports it rather than letting the suite look complete.
+        """
 
         available = set(self.need_macros)
         filtered: list[tuple[Any, ...]] = []
+        skipped: list[str] = []
         seen: set[tuple[str, ...]] = set()
         for entry in candidates:
             macros: tuple[str, ...] = tuple(entry[0])
-            if not set(macros).issubset(available):
+            missing = sorted(set(macros) - available)
+            if missing:
+                skipped.append(f"{entry[1]} (missing: {', '.join(missing)})")
                 continue
             if macros in seen:
                 continue
             seen.add(macros)
             filtered.append(entry)
-        return filtered
+        return filtered, skipped
 
     def _build_individual_cases(self) -> list[ModuleTestCase]:
         """Build compile probes for each discovered NEED_* macro."""
@@ -316,10 +324,10 @@ class ModuleTester:
             )
         return cases
 
-    def _build_combination_cases(self) -> list[ModuleTestCase]:
+    def _build_combination_cases(self) -> tuple[list[ModuleTestCase], list[str]]:
         """Build compile probes for supported common module combinations."""
 
-        combinations = self._available_candidates(COMBINATION_CANDIDATES)
+        combinations, skipped = self._available_candidates(COMBINATION_CANDIDATES)
         if not combinations and len(self.need_macros) > 1:
             combinations = [
                 (
@@ -328,47 +336,50 @@ class ModuleTester:
                     DEFAULT_EMPTY_MAIN,
                 )
             ]
-        return [
+        cases = [
             ModuleTestCase(
                 kind="combination",
-                description=description,
+                description=str(description),
                 macros=tuple(macros),
-                source=test_code,
+                source=str(test_code),
             )
             for macros, description, test_code in combinations
         ]
+        return cases, skipped
 
-    def _build_strict_profile_cases(self) -> list[ModuleTestCase]:
+    def _build_strict_profile_cases(self) -> tuple[list[ModuleTestCase], list[str]]:
         """Build compile probes for strict-profile combinations."""
 
-        combinations = self._available_candidates(STRICT_PROFILE_CANDIDATES)
-        return [
+        combinations, skipped = self._available_candidates(STRICT_PROFILE_CANDIDATES)
+        cases = [
             ModuleTestCase(
                 kind="strict_profile",
-                description=description,
+                description=str(description),
                 macros=tuple(macros),
-                source=test_code,
+                source=str(test_code),
                 extra_defines=("CP_TEMPLATE_PROFILE_STRICT",),
             )
             for macros, description, test_code in combinations
         ]
+        return cases, skipped
 
-    def _build_benchmark_cases(self) -> list[ModuleTestCase]:
+    def _build_benchmark_cases(self) -> tuple[list[ModuleTestCase], list[str]]:
         """Build compile probes used for rough timing comparisons."""
 
-        benchmarks = self._available_candidates(BENCHMARK_CANDIDATES)
+        benchmarks, skipped = self._available_candidates(BENCHMARK_CANDIDATES)
         if not benchmarks:
             benchmarks = (
                 [((self.need_macros[0],), "Single discovered macro")] if self.need_macros else []
             )
-        return [
+        cases = [
             ModuleTestCase(
                 kind="benchmark",
-                description=description,
+                description=str(description),
                 macros=tuple(macros),
             )
             for macros, description in benchmarks
         ]
+        return cases, skipped
 
     def _compile_case(self, case: ModuleTestCase) -> CompilationOutcome:
         """Compile one logical test case through the shared compiler invocation."""
@@ -418,16 +429,22 @@ class ModuleTester:
         cases: list[ModuleTestCase],
         empty_message: str | None = None,
         parallel: bool = True,
+        skipped: Sequence[str] = (),
     ) -> None:
         """Run a homogeneous case group with shared console/reporting behavior.
 
         ``parallel=False`` is required for benchmarks so the per-case
         ``elapsed_seconds`` reflects an isolated compile rather than one
         running under contention with siblings.
+
+        ``skipped`` names candidates dropped for want of a NEED_* macro; they
+        are printed so the group never reads as fully covered when it is not.
         """
 
         print(title)
         print("-" * 50)
+        for note in skipped:
+            print(f"  SKIP {note}")
         if not cases and empty_message:
             print(empty_message)
             return
@@ -466,26 +483,32 @@ class ModuleTester:
     def test_module_combinations(self) -> None:
         """Test common module combinations available in current templates."""
 
+        cases, skipped = self._build_combination_cases()
         self._run_case_group(
             title="\nTesting module combinations...",
-            cases=self._build_combination_cases(),
+            cases=cases,
+            skipped=skipped,
         )
 
     def test_strict_profile_combinations(self) -> None:
         """Compile-check strict profile combinations when their macros are available."""
 
+        cases, skipped = self._build_strict_profile_cases()
         self._run_case_group(
             title="\nTesting strict-profile combinations...",
-            cases=self._build_strict_profile_cases(),
+            cases=cases,
+            skipped=skipped,
             empty_message="No strict-profile candidates available for current NEED_* set.",
         )
 
     def test_performance_benchmarks(self) -> None:
         """Benchmark compilation time for available combinations."""
 
+        cases, skipped = self._build_benchmark_cases()
         self._run_case_group(
             title="\nBenchmarking compilation times...",
-            cases=self._build_benchmark_cases(),
+            cases=cases,
+            skipped=skipped,
             parallel=False,
         )
 
@@ -586,33 +609,6 @@ def main() -> int:
         tester.generate_report(args.report.expanduser())
 
     return 0 if success else 1
-
-
-_DEPRECATED_NAMES: dict[str, Callable[..., Any]] = {
-    "_load_template_config": load_tooling_config,
-    "_select_compiler": select_compiler,
-    "_build_compiler_flags": build_compiler_flags,
-    "_compiler_supports_std_headers": compiler_supports_std_headers,
-}
-
-
-def __getattr__(name: str) -> object:
-    """Back-compat shim for the underscore-prefixed helpers moved to module_runtime.
-
-    The legacy names were imported by ``module_verify`` (now migrated) and
-    possibly by external user scripts. Accessing them emits a
-    ``DeprecationWarning`` and returns the public ``module_runtime`` symbol.
-    """
-
-    if name in _DEPRECATED_NAMES:
-        warnings.warn(
-            f"module_tester.{name} is deprecated; "
-            f"import {_DEPRECATED_NAMES[name].__name__} from module_runtime instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _DEPRECATED_NAMES[name]
-    raise AttributeError(f"module 'module_tester' has no attribute {name!r}")
 
 
 if __name__ == "__main__":

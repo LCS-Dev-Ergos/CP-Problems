@@ -4,6 +4,10 @@
 # invoked from this directory with consistent settings.
 
 [tool.ruff]
+# Pinned so a linter upgrade cannot break `make check` by stabilizing new
+# rules the ignore-list below has never seen. Bump deliberately, together
+# with requirements-dev.txt, and re-run `make check` in the same commit.
+required-version = ">=0.16,<0.17"
 target-version = "py311"
 line-length = 100
 extend-exclude = [
@@ -80,7 +84,3 @@ python_files = ["test_*.py"]
 python_classes = ["Test*", "*Tests"]
 python_functions = ["test_*"]
 addopts = "-q -ra --strict-markers"
-filterwarnings = [
-    # Keep our own DeprecationWarning shim from polluting CI output.
-    "ignore::DeprecationWarning:module_tester",
-]

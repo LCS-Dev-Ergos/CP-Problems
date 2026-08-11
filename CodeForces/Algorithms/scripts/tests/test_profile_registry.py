@@ -26,6 +26,33 @@ def _write_toml(body: str) -> Path:
     return tmp
 
 
+# Every required table, each with one harmless entry. Field-level validation
+# tests append the malformed table they are actually about, so the check under
+# test is the one that fires rather than the required-table gate.
+_MINIMAL_VALID_TOML = """\
+schema_version = 1
+
+[defaults]
+CP_OK = 1
+
+[io_profile.simple]
+needs = ["NEED_IO"]
+
+[feature.NEED_IO]
+headers = ["modules/IO.hpp"]
+
+[scaffold.base]
+needs = ["NEED_IO"]
+io_profile = "simple"
+"""
+
+
+def _write_toml_with(extra: str) -> Path:
+    """Write a schema-complete registry extended with ``extra``."""
+
+    return _write_toml(_MINIMAL_VALID_TOML + textwrap.dedent(extra))
+
+
 class ProfileRegistryTests(unittest.TestCase):
     def setUp(self) -> None:
         """Reset the profile registry cache before each test to avoid cross-test state."""
@@ -142,15 +169,104 @@ class ProfileRegistryTests(unittest.TestCase):
         finally:
             path.unlink(missing_ok=True)
 
-    def test_rejects_scaffold_referencing_unknown_io_profile(self) -> None:
-        """Scaffold that references a non-existent io_profile should raise ValueError."""
+    def test_rejects_registry_missing_required_tables(self) -> None:
+        """A truncated profiles.toml must fail at load, naming what is missing.
+
+        Every table used to be optional, so a file carrying only
+        ``schema_version`` produced an empty registry that failed much later as
+        an empty argparse ``choices`` tuple or a bare "Unable to derive NEED_*
+        mapping".
+        """
+
+        path = _write_toml("schema_version = 1\n")
+        try:
+            with self.assertRaisesRegex(ValueError, "missing required non-empty table"):
+                profile_registry.load_registry(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_missing_table_error_names_every_absent_table(self) -> None:
+        """The message must list the absent tables, not just the first one."""
+
         path = _write_toml(
             """\
             schema_version = 1
 
+            [defaults]
+            CP_OK = 1
+            """
+        )
+        try:
+            with self.assertRaises(ValueError) as ctx:
+                profile_registry.load_registry(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+
+        message = str(ctx.exception)
+        for table in ("io_profile", "feature", "scaffold"):
+            self.assertIn(table, message)
+        self.assertNotIn("defaults", message.rsplit(":", maxsplit=1)[-1])
+
+    def test_present_but_empty_table_is_rejected(self) -> None:
+        """An empty ``[scaffold]`` is as unusable as an absent one."""
+
+        path = _write_toml(
+            """\
+            schema_version = 1
+
+            [defaults]
+            CP_OK = 1
+
             [io_profile.simple]
             needs = ["NEED_IO"]
 
+            [feature.NEED_IO]
+            headers = ["modules/IO.hpp"]
+
+            [scaffold]
+            """
+        )
+        try:
+            with self.assertRaisesRegex(ValueError, "missing required non-empty table"):
+                profile_registry.load_registry(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_scalar_where_a_named_table_is_expected_is_rejected(self) -> None:
+        """``[scaffold]`` holding scalars (a mistyped ``[scaffold.base]``) fails cleanly.
+
+        Previously this reached ``_scaffold`` and raised ``AttributeError``,
+        which reads as a crash rather than a configuration error.
+        """
+
+        path = _write_toml(
+            """\
+            schema_version = 1
+
+            [defaults]
+            CP_OK = 1
+
+            [io_profile.simple]
+            needs = ["NEED_IO"]
+
+            [feature.NEED_IO]
+            headers = ["modules/IO.hpp"]
+
+            [scaffold]
+            needs = ["NEED_IO"]
+            io_profile = "simple"
+            """
+        )
+        try:
+            with self.assertRaisesRegex(ValueError, r"scaffold\.needs: expected a table"):
+                profile_registry.load_registry(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_rejects_scaffold_referencing_unknown_io_profile(self) -> None:
+        """Scaffold that references a non-existent io_profile should raise ValueError."""
+        path = _write_toml_with(
+            """
             [scaffold.broken]
             needs = ["NEED_MACROS"]
             io_profile = "does_not_exist"
@@ -164,12 +280,24 @@ class ProfileRegistryTests(unittest.TestCase):
 
     def test_rejects_non_int_default(self) -> None:
         """Defaults section containing non-integer values should raise ValueError."""
+        # Spelled out rather than composed: ``[defaults]`` already exists in the
+        # shared fixture and TOML forbids redefining a table.
         path = _write_toml(
             """\
             schema_version = 1
 
             [defaults]
             CP_BAD = "not-an-int"
+
+            [io_profile.simple]
+            needs = ["NEED_IO"]
+
+            [feature.NEED_IO]
+            headers = ["modules/IO.hpp"]
+
+            [scaffold.base]
+            needs = ["NEED_IO"]
+            io_profile = "simple"
             """
         )
         try:
@@ -180,10 +308,8 @@ class ProfileRegistryTests(unittest.TestCase):
 
     def test_rejects_non_list_needs(self) -> None:
         """io_profile with a string instead of a list for 'needs' should raise ValueError."""
-        path = _write_toml(
-            """\
-            schema_version = 1
-
+        path = _write_toml_with(
+            """
             [io_profile.broken]
             needs = "NEED_IO"
             """
@@ -196,10 +322,8 @@ class ProfileRegistryTests(unittest.TestCase):
 
     def test_rejects_non_need_feature_names(self) -> None:
         """Feature manifest table names should be explicit NEED_* macros."""
-        path = _write_toml(
-            """\
-            schema_version = 1
-
+        path = _write_toml_with(
+            """
             [feature.CP_BAD]
             headers = ["core/Macros.hpp"]
             """
@@ -212,13 +336,8 @@ class ProfileRegistryTests(unittest.TestCase):
 
     def test_rejects_non_bool_scaffold_flags(self) -> None:
         """Scaffold booleans should reject strings instead of using Python truthiness."""
-        path = _write_toml(
-            """\
-            schema_version = 1
-
-            [io_profile.simple]
-            needs = ["NEED_IO"]
-
+        path = _write_toml_with(
+            """
             [scaffold.broken]
             needs = ["NEED_MACROS"]
             io_profile = "simple"
