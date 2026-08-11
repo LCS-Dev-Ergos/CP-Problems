@@ -110,11 +110,6 @@ def extract_macro_values_from_source(
     for define_name, define_value in io_defines.items():
         macro_values.setdefault(define_name, define_value)
 
-    # Legacy synonym: NEED_TYPE_SAFETY enables the advanced layer, mirroring the
-    # ``#if defined(NEED_TYPE_SAFETY)`` shim in Base.hpp.
-    if macro_values.get("NEED_TYPE_SAFETY"):
-        macro_values.setdefault("CP_USE_ADVANCED", 1)
-
     # CP_USE_ADVANCED is a 0/1 switch consumed with ``#if``. It is intentionally
     # *not* a profiles.toml default (Config_defaults runs before the IO profile
     # and a default there would block the profile from turning it on). Resolve it

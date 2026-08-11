@@ -45,7 +45,6 @@ DEFAULT_NEED_MACROS = (
     "NEED_BIT_OPS",
     "NEED_MOD_INT",
     "NEED_CONTAINERS",
-    "NEED_TYPE_SAFETY",
     "NEED_HASHING",
 )
 
@@ -62,12 +61,6 @@ INDIVIDUAL_TEST_SNIPPETS = {
         "return I64(z) == 15 && I64(c) == 15 ? 0 : 1; }"
     ),
     "NEED_CONTAINERS": "int main() { VecI32 v = {3,1,2}; auto idx = argsort(v); return (int)idx.size(); }",
-    "NEED_TYPE_SAFETY": (
-        "CP_DECLARE_STRONG_TYPE(NodeId, I32); "
-        "int main() { NodeId id(3); ++id; auto sum = id + NodeId(2); "
-        "auto maybe = cp::cast::try_narrow<I32>(cp::unwrap(sum)); "
-        "return maybe && *maybe == 6 ? 0 : 1; }"
-    ),
     "NEED_HASHING": (
         "int main() { cp::hashing::FastHashMap<I64, I32> freq; freq[42] = 1; "
         "cp::hashing::FastHashSet<I64> st; st.insert(42); "
@@ -106,11 +99,6 @@ COMBINATION_CANDIDATES = (
         "int main() { VecI32 v = {3,1,2}; auto idx = argsort(v); return (int)idx.size(); }",
     ),
     (
-        ("NEED_CORE", "NEED_TYPE_SAFETY"),
-        "Core + Type Safety",
-        "CP_DECLARE_STRONG_TYPE(NodeId, I32); int main() { NodeId id(7); return cp::unwrap(id) == 7 ? 0 : 1; }",
-    ),
-    (
         ("NEED_CORE", "NEED_HASHING"),
         "Core + Hashing",
         "int main() { cp::hashing::FastHashMap<I64, I64> mp; mp[1] = 2; return mp[1] == 2 ? 0 : 1; }",
@@ -138,11 +126,6 @@ STRICT_PROFILE_CANDIDATES = (
         ("NEED_CORE", "NEED_IO"),
         "Strict + Core + I/O",
         "int main() { LL(n); OUT(n); return 0; }",
-    ),
-    (
-        ("NEED_CORE", "NEED_FAST_IO", "NEED_TYPE_SAFETY"),
-        "Strict + Fast I/O + Type Safety",
-        "CP_DECLARE_STRONG_TYPE(NodeId, I32); int main() { NodeId id(9); OUT(cp::unwrap(id)); return 0; }",
     ),
 )
 

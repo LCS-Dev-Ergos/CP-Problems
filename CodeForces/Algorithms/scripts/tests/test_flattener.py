@@ -139,7 +139,7 @@ class FlattenerAuditTests(unittest.TestCase):
             #include "templates/Base.hpp"
             """
         )
-        known = {"NEED_CORE", "NEED_IO", "NEED_FAST_IO", "NEED_MOD_INT", "NEED_TYPE_SAFETY"}
+        known = {"NEED_CORE", "NEED_IO", "NEED_FAST_IO", "NEED_MOD_INT"}
 
         found = extract_need_macros_from_source(source, known)
 

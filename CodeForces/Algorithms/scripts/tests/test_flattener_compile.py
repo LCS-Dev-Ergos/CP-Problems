@@ -139,11 +139,11 @@ _ADVANCED_DECOUPLE_SOURCE = textwrap.dedent(
 
 # The advanced layer (cp::StrongType, cp::cast::*) is gated by CP_USE_ADVANCED in
 # Base.hpp, not by a NEED_* feature. The flattener must reproduce that include
-# gate so these symbols survive even outside fast-I/O (here: legacy
-# NEED_TYPE_SAFETY synonym + simple I/O + a direct cp::cast::narrow call).
+# gate so these symbols survive even outside fast-I/O (here: the switch set
+# directly + simple I/O + a direct cp::cast::narrow call).
 _ADVANCED_NO_FASTIO_SOURCE = textwrap.dedent(
     """\
-    #define NEED_TYPE_SAFETY
+    #define CP_USE_ADVANCED 1
     #define NEED_MACROS
     #define NEED_TYPES
     #define CP_IO_PROFILE_SIMPLE
