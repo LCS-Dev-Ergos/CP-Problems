@@ -5,6 +5,6 @@
 #include "templates/core/Macros.hpp"
 #include "templates/modules/IntegerMath.hpp"
 #include "templates/core/MinMax.hpp"
-#include "templates/core/Random.hpp"
+#include "templates/modules/Random.hpp"
 
 #endif

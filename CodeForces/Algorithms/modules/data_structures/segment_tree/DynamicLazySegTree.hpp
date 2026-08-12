@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_DYNAMIC_LAZY_SEG_TREE_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Dynamic lazy segment tree on an arbitrary integer interval.
 template <typename ActedMonoid, bool Persistent = false>

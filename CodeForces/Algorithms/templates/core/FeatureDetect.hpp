@@ -1,6 +1,4 @@
 #pragma once
-#include "templates/core/StdHeaders.hpp"
-
 //===----------------------------------------------------------------------===//
 /* Toolchain Feature Detection */
 

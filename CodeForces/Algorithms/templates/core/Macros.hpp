@@ -1,6 +1,6 @@
 #pragma once
 #include "templates/core/Debug.hpp"
-#include "templates/core/TypeTraits.hpp"
+#include "templates/core/ScalarTypes.hpp"
 
 #ifndef CP_ENABLE_SHORT_MACROS
   #define CP_ENABLE_SHORT_MACROS 1
@@ -9,7 +9,50 @@
 //===----------------------------------------------------------------------===//
 /* Advanced Macro System */
 
-// Advanced FOR loop system:
+namespace cp {
+
+namespace detail {
+
+template <class T, bool = std::is_integral_v<std::remove_cvref_t<T>> &&
+                              !std::is_same_v<std::remove_cvref_t<T>, bool>>
+struct LoopArg {
+  using type = std::remove_cvref_t<T>;
+};
+
+template <class T>
+struct LoopArg<T, true> {
+  using type = std::make_signed_t<std::remove_cvref_t<T>>;
+};
+
+} // namespace detail
+
+template <class... Ts>
+using LoopT = std::common_type_t<I32, typename detail::LoopArg<Ts>::type...>;
+
+template <class... Ts>
+struct Loop {
+  using T = LoopT<Ts...>;
+
+  template <class X>
+  [[gnu::always_inline]] static constexpr T val(X x) noexcept {
+    return x;
+  }
+};
+
+template <class R>
+[[gnu::always_inline]] constexpr I64 sz64(const R& x)
+    noexcept(noexcept(std::ssize(x))) {
+  return std::ssize(x);
+}
+
+template <class R>
+[[gnu::always_inline]] constexpr I32 sz32(const R& x)
+    noexcept(noexcept(std::ssize(x))) {
+  return std::ssize(x);
+}
+
+} // namespace cp
+
 #define CP_LOOP(...) cp::Loop<__VA_ARGS__>
 #define CP_VAL(x, ...) CP_LOOP(__VA_ARGS__)::val(x)
 
@@ -60,9 +103,32 @@
 #endif
 
 // Advanced container operations:
-#define UNIQUE(x) (std::ranges::sort(x), x.erase(std::ranges::unique(x).begin(), x.end()), x.shrink_to_fit())
-#define LB(c, x) (I64) std::distance((c).begin(), std::ranges::lower_bound(c, x))
-#define UB(c, x) (I64) std::distance((c).begin(), std::ranges::upper_bound(c, x))
+namespace cp {
+
+template <class R>
+void unique_inplace(R& range) {
+  std::ranges::sort(range);
+  const auto tail = std::ranges::unique(range);
+  range.erase(tail.begin(), tail.end());
+  if constexpr (requires { range.shrink_to_fit(); })
+    range.shrink_to_fit();
+}
+
+template <class R, class T>
+I64 lower_bound_index(R&& range, const T& value) {
+  return std::ranges::distance(std::ranges::begin(range), std::ranges::lower_bound(range, value));
+}
+
+template <class R, class T>
+I64 upper_bound_index(R&& range, const T& value) {
+  return std::ranges::distance(std::ranges::begin(range), std::ranges::upper_bound(range, value));
+}
+
+} // namespace cp
+
+#define UNIQUE(x) cp::unique_inplace((x))
+#define LB(c, x) cp::lower_bound_index((c), (x))
+#define UB(c, x) cp::upper_bound_index((c), (x))
 
 // Y-combinator for recursive lambdas:
 template <class F>

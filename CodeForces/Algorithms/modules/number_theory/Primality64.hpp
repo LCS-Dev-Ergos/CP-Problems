@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_PRIMALITY64_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Overflow-safe modular multiplication on 64-bit inputs.
 inline I64 mod_mul64(I64 a, I64 b, I64 mod) {

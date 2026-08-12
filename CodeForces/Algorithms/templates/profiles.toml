@@ -1,35 +1,31 @@
-# Single source of truth for template profiles.
-# Edit, then run scripts/gen_config.py and scripts/gen_scaffold.py.
+# Run gen_config.py and gen_scaffold.py after editing.
 
 schema_version = 1
 
-# Probe toolchain. Empty compiler = auto-detect (g++-16 → … → c++).
 [tooling]
 compiler       = ""
 compiler_flags = ["-std=c++23", "-Wall", "-Wextra"]
 
 [defaults]
-CP_CORE_ENABLE_MATH                = 1
 CP_USE_GLOBAL_STD_NAMESPACE        = 1
 CP_USE_BITS_HEADER                 = 1
-# On in every profile, strict included; only VEC/VV are legacy.
 CP_IO_ENABLE_COMPOSITE             = 1
 CP_ENABLE_LEGACY_IO_VEC_MACROS     = 1
 CP_ENABLE_AGGRESSIVE_OPTIMIZATIONS = 0
-# -ffast-math is opt-in on its own: it changes floating-point semantics.
 CP_ENABLE_FAST_MATH                = 0
-CP_ENABLE_GCC_OPTIMIZE_PRAGMAS     = 1
-# Off by default so workspace/PCH builds avoid the .gch target-option mismatch;
-# the flattener turns this on for standalone submissions (auto-guarded by the
-# __x86_64__/__aarch64__ checks in core/Compiler.hpp).
+CP_ENABLE_GCC_OPTIMIZE_PRAGMAS     = 0
 CP_ENABLE_ARCH_TARGET_PRAGMAS      = 0
+CP_USE_ADVANCED                    = 0
+CP_FAST_IO_VARIANT                 = 1
+CP_FLOAT_PRECISION                 = 10
+CP_FAST_IO_MAX_TOKEN_SIZE          = 16777216
+CP_ENABLE_SHORT_MACROS             = 1
 CP_DEBUG_ENABLE_PERF               = 0
 CP_DEBUG_ENABLE_MEMORY             = 0
 CP_DEBUG_ENABLE_WATCH              = 0
 CP_DEBUG_ENABLE_TREE               = 0
 
 [defaults.strict_overrides]
-CP_CORE_ENABLE_MATH                = 0
 CP_USE_GLOBAL_STD_NAMESPACE        = 0
 CP_ENABLE_LEGACY_IO_VEC_MACROS     = 0
 
@@ -37,33 +33,28 @@ CP_ENABLE_LEGACY_IO_VEC_MACROS     = 0
 needs   = ["NEED_IO"]
 defines = {}
 
-# Variant 0: no extension hooks, full-reload input (one token must fit).
 [io_profile.fast_minimal]
 needs   = ["NEED_FAST_IO"]
 defines = { CP_FAST_IO_VARIANT = 0 }
 
 [io_profile.fast_extended]
 needs   = ["NEED_FAST_IO", "NEED_MOD_INT"]
-defines = { CP_FAST_IO_ENABLE_MODINT = 1, CP_FAST_IO_ENABLE_STRONG_TYPE = 1, CP_USE_ADVANCED = 1 }
+defines = { CP_USE_ADVANCED = 1 }
 
-# Generated first: pb_ds headers must be parsed before core/Macros.hpp
-# defines the lowercase macro family.
 [feature.NEED_PBDS]
 headers = ["modules/PBDS.hpp"]
 
-# Listed explicitly, not only via Types.hpp, so the flattener can prune each.
 [feature.NEED_CORE]
-headers = ["core/ScalarTypes.hpp", "core/ContainerAliases.hpp",
-           "core/Constants.hpp", "core/Macros.hpp", "core/Types.hpp"]
-conditional_headers = [
-  { if = "CP_CORE_ENABLE_MATH", headers = ["core/MinMax.hpp", "core/Random.hpp", "modules/IntegerMath.hpp"] },
-]
+headers = ["DefaultToolkit.hpp"]
+
+[feature.NEED_DEFAULT_TOOLKIT]
+headers = ["DefaultToolkit.hpp"]
 
 [feature.NEED_SCALAR_TYPES]
 headers = ["core/ScalarTypes.hpp"]
 
 [feature.NEED_TYPES]
-headers = ["core/ScalarTypes.hpp", "core/ContainerAliases.hpp", "core/Types.hpp"]
+headers = ["core/Types.hpp"]
 
 [feature.NEED_CONSTANTS]
 headers = ["core/Constants.hpp"]
@@ -72,7 +63,7 @@ headers = ["core/Constants.hpp"]
 headers = ["core/Macros.hpp"]
 
 [feature.NEED_MATH]
-headers = ["core/MinMax.hpp", "core/Random.hpp", "modules/IntegerMath.hpp"]
+headers = ["core/MinMax.hpp", "modules/Random.hpp", "modules/IntegerMath.hpp"]
 
 [feature.NEED_INTEGER_MATH]
 headers = ["modules/IntegerMath.hpp"]
@@ -81,7 +72,7 @@ headers = ["modules/IntegerMath.hpp"]
 headers = ["core/MinMax.hpp"]
 
 [feature.NEED_RANDOM]
-headers = ["core/Random.hpp"]
+headers = ["modules/Random.hpp"]
 
 [feature.NEED_TIMER]
 headers = ["core/Timer.hpp"]
@@ -89,22 +80,15 @@ headers = ["core/Timer.hpp"]
 [feature.NEED_HASHING]
 headers = ["modules/Hashing.hpp"]
 
-# The I/O layer ships the macro + alias vocabulary. Declaring it here instead of
-# inside IO.hpp keeps the compiler and the flattener's pruner in agreement.
 [feature.NEED_FAST_IO]
-headers = ["core/ScalarTypes.hpp", "core/TypeTraits.hpp", "core/ContainerAliases.hpp",
-           "core/Macros.hpp", "modules/Fast_IO.hpp"]
+headers = ["modules/Fast_IO.hpp"]
 
 [feature.NEED_IO]
-headers = ["core/ScalarTypes.hpp", "core/TypeTraits.hpp", "core/ContainerAliases.hpp",
-           "core/Macros.hpp", "modules/IO.hpp"]
+headers = ["modules/IO.hpp"]
 
 [feature.NEED_BIT_OPS]
 headers = ["modules/Bit_Ops.hpp"]
 
-# Kept out of NEED_MACROS on purpose: SUM widens its accumulator through the
-# IdiomAliases concepts, so folding it into the macro layer charged every
-# solution ~50 lines it could not use.
 [feature.NEED_RANGE_REDUCERS]
 headers = ["modules/RangeReducers.hpp"]
 
@@ -112,11 +96,16 @@ headers = ["modules/RangeReducers.hpp"]
 headers = ["modules/Mod_Int.hpp"]
 
 [feature.NEED_CONTAINERS]
-headers = ["core/ContainerAliases.hpp", "modules/Containers.hpp"]
+headers = ["modules/ContainerAlgorithms.hpp", "modules/NdVec.hpp", "modules/Search.hpp"]
 
-# Compatibility alias: the nd-vector builders now live in Containers.hpp.
+[feature.NEED_CONTAINER_ALGORITHMS]
+headers = ["modules/ContainerAlgorithms.hpp"]
+
 [feature.NEED_NDVEC]
-headers = ["core/ContainerAliases.hpp", "modules/Containers.hpp"]
+headers = ["modules/NdVec.hpp"]
+
+[feature.NEED_SEARCH]
+headers = ["modules/Search.hpp"]
 
 [scaffold.base]
 description = "Minimal: macros + timer + simple I/O."
@@ -138,7 +127,7 @@ defines     = { CP_USE_GLOBAL_STD_NAMESPACE = 1 }
 
 [scaffold.pbds]
 description = "Core + PBDS."
-needs       = ["NEED_CORE", "NEED_TIMER", "NEED_PBDS"]
+needs       = ["NEED_DEFAULT_TOOLKIT", "NEED_TIMER", "NEED_PBDS"]
 io_profile  = "simple"
 header_doc  = true
 strict      = true

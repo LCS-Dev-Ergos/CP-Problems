@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_POLLARD_RHO_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Primality64.hpp"
 
 /// @brief Pollard's Rho randomized factor finder.

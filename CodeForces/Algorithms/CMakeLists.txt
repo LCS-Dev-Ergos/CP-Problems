@@ -172,7 +172,7 @@ if(CP_ALGORITHMS_ENABLE_PROBE_SANITIZERS)
   endif()
 endif()
 
-# ---------------------- Fast Linker for Runtime Probes ----------------------- #
+# ---------------------- Fast Linker for Runtime Probes ---------------------- #
 # Probe runtime executables only — lld typically beats ld64 by 2-3x for small
 # C++ binaries. Apple Clang on macOS doesn't always know how to find Homebrew
 # lld, so we restrict the substitution to LLVM Clang where lld ships alongside.
@@ -362,6 +362,9 @@ if(CP_ALGORITHMS_ENABLE_HEADER_PROBES)
     "${CP_ALGORITHMS_ROOT}/modules/*.hpp"
     "${CP_ALGORITHMS_ROOT}/libs/*.h"
     "${CP_ALGORITHMS_ROOT}/libs/*.hpp"
+  )
+  list(FILTER cp_algorithms_public_headers EXCLUDE REGEX
+    "/templates/modules/(IO_Composite|IO_Defs)\\.hpp$"
   )
 
   set(cp_algorithms_header_probe_sources "")

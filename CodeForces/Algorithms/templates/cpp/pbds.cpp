@@ -15,7 +15,7 @@
   #define CP_USE_GLOBAL_STD_NAMESPACE 1
 #endif
 
-#define NEED_CORE
+#define NEED_DEFAULT_TOOLKIT
 #define NEED_PBDS
 #define NEED_TIMER
 #define CP_IO_PROFILE_SIMPLE

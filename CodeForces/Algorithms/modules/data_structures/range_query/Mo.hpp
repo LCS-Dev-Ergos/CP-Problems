@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_MO_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Mo's algorithm for offline range queries.

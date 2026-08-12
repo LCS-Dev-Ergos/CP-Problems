@@ -2,6 +2,7 @@
 #define CP_MODULES_STRINGS_SUFFIX_ARRAY_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Suffix array + Kasai LCP with O(1) LCP queries.

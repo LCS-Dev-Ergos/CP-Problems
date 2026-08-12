@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_SEGMENT_TREE_HULL_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Segment tree with range assignment and max query over static line hulls.

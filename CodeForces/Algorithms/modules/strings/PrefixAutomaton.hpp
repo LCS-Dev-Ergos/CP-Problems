@@ -2,6 +2,7 @@
 #define CP_MODULES_STRINGS_PREFIX_AUTOMATON_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "PrefixFunction.hpp"
 
 /**

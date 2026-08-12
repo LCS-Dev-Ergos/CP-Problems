@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_DISCRETE_LOG_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Baby-step Giant-step discrete logarithm.

@@ -2,6 +2,7 @@
 #define CP_MODULES_STRINGS_ROLLING_HASH_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Double rolling hash utility for substring hashing/LCP.
 struct RollingHash {

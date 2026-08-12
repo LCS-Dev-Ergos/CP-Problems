@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_CONVEX_HULL_TRICK_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Monotonic Convex Hull Trick (minimum queries).

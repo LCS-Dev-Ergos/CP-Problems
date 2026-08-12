@@ -28,6 +28,7 @@ from profile_registry import (
 CONFIG_OUTPUT = TEMPLATES_DIR / "core" / "Config_defaults.hpp"
 BASE_PROFILES_OUTPUT = TEMPLATES_DIR / "Base_profiles.hpp"
 BASE_FEATURES_OUTPUT = TEMPLATES_DIR / "Base_features.hpp"
+BASE_CONTRACTS_OUTPUT = TEMPLATES_DIR / "Base_contracts.hpp"
 
 AUTOGEN_HEADER = "// Generated from profiles.toml. Do not edit by hand.\n"
 
@@ -76,9 +77,43 @@ def _render_base_profiles(registry: ProfileRegistry) -> str:
 
     for target, blockers in registry.need_shadow_rules():
         condition = " || ".join(f"defined({blocker})" for blocker in sorted(blockers))
-        lines += [f"#if defined({target}) && ({condition})", f"  #undef {target}", "#endif"]
+        lines += [
+            f"#if defined({target}) && ({condition})",
+            "  #if defined(CP_TEMPLATE_PROFILE_STRICT) || defined(CP_STRICT_TEMPLATE_NEEDS)",
+            f'    #error "Conflicting template features: {target} is shadowed by a selected backend."',
+            "  #else",
+            f"    #undef {target}",
+            "  #endif",
+            "#endif",
+        ]
     lines.append("")
     return "\n".join(lines)
+
+
+def _render_base_contracts() -> str:
+    """Render compile-time validation for public 0/1 and variant switches."""
+
+    return "\n".join(
+        [
+            "#pragma once",
+            "",
+            AUTOGEN_HEADER.rstrip("\n"),
+            "",
+            "#if CP_USE_ADVANCED != 0 && CP_USE_ADVANCED != 1",
+            '  #error "CP_USE_ADVANCED must be 0 or 1."',
+            "#endif",
+            "#if CP_FAST_IO_VARIANT != 0 && CP_FAST_IO_VARIANT != 1",
+            '  #error "CP_FAST_IO_VARIANT must be 0 (minimal) or 1 (refill)."',
+            "#endif",
+            "#if CP_FLOAT_PRECISION < 0",
+            '  #error "CP_FLOAT_PRECISION must be non-negative."',
+            "#endif",
+            "#if CP_FAST_IO_MAX_TOKEN_SIZE <= 0",
+            '  #error "CP_FAST_IO_MAX_TOKEN_SIZE must be positive."',
+            "#endif",
+            "",
+        ]
+    )
 
 
 def _include_line(header: str) -> str:
@@ -127,7 +162,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Regenerate the C++ template config headers from "
             f"{DEFAULT_PROFILES_PATH.name}. Writes "
             f"{CONFIG_OUTPUT.name}, {BASE_PROFILES_OUTPUT.name} and "
-            f"{BASE_FEATURES_OUTPUT.name} under templates/, and only when the "
+            f"{BASE_FEATURES_OUTPUT.name}, {BASE_CONTRACTS_OUTPUT.name} under "
+            "templates/, and only when the "
             "rendered content differs. Run via `make regen-templates`."
         ),
     )
@@ -148,6 +184,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         changed = True
     if _write_if_changed(BASE_FEATURES_OUTPUT, _render_base_features(registry)):
         print(f"wrote {BASE_FEATURES_OUTPUT}")
+        changed = True
+    if _write_if_changed(BASE_CONTRACTS_OUTPUT, _render_base_contracts()):
+        print(f"wrote {BASE_CONTRACTS_OUTPUT}")
         changed = True
     if not changed:
         print("up-to-date")

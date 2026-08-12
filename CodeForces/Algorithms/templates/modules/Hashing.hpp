@@ -1,5 +1,5 @@
 #pragma once
-#include "templates/core/IdiomAliases.hpp"
+#include "templates/core/CoreConcepts.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Randomized Hash Utilities (anti-collision for unordered containers) */
@@ -18,8 +18,14 @@ namespace cp::hashing {
   static U64 seed = U64(CP_SEED);
 #else
   // Clock alone is guessable by an anti-hash test.
-  static U64 seed = U64(std::chrono::steady_clock::now().time_since_epoch().count())
-                    ^ (U64(std::random_device{}()) * 0x9e37'79b9'7f4a'7c15ULL);
+  static U64 seed = []() noexcept {
+    const U64 ticks = U64(std::chrono::steady_clock::now().time_since_epoch().count());
+    try {
+      return ticks ^ (U64(std::random_device{}()) * 0x9e37'79b9'7f4a'7c15ULL);
+    } catch (...) {
+      return ticks ^ U64(reinterpret_cast<std::uintptr_t>(&fixed_random_seed_storage));
+    }
+  }();
 #endif
   return seed;
 }
@@ -33,8 +39,8 @@ inline void set_seed(U64 seed) noexcept { fixed_random_seed_storage() = seed; }
 }
 
 template <class T>
-[[gnu::always_inline]] inline U64 raw_hash(const T& value) noexcept {
-  using U = cp::remove_cvref_t<T>;
+[[gnu::always_inline]] inline U64 raw_hash(const T& value) {
+  using U = cp::RemoveCvrefT<T>;
   if constexpr (Int<U>)
     return U64(value);
   else if constexpr (Enum<U>)
@@ -47,17 +53,22 @@ template <class T>
 
 template <class T>
 struct SplitMixHash {
-  size_t operator()(const T& value) const noexcept {
-    return size_t(splitmix64(raw_hash(value) + fixed_random_seed()));
+  U64 seed = fixed_random_seed();
+
+  size_t operator()(const T& value) const noexcept(noexcept(raw_hash(value))) {
+    return size_t(splitmix64(raw_hash(value) + seed));
   }
 };
 
 template <class T, class U>
 struct PairHash {
-  size_t operator()(const std::pair<T, U>& value) const noexcept {
-    U64 lhs = U64(SplitMixHash<T>{}(value.first));
-    U64 rhs = U64(SplitMixHash<U>{}(value.second));
-    return size_t(splitmix64(hash_combine(lhs, rhs) + fixed_random_seed()));
+  U64 seed = fixed_random_seed();
+
+  size_t operator()(const std::pair<T, U>& value) const
+      noexcept(noexcept(raw_hash(value.first)) && noexcept(raw_hash(value.second))) {
+    const U64 lhs = splitmix64(raw_hash(value.first) + seed);
+    const U64 rhs = splitmix64(raw_hash(value.second) + seed);
+    return size_t(splitmix64(hash_combine(lhs, rhs) + seed));
   }
 };
 

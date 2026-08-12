@@ -2,6 +2,7 @@
 #define CP_MODULES_STRINGS_Z_ALGORITHM_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Computes Z-array where z[i] is LCP(s, s[i..]).
 inline VecI32 z_algorithm(const String& s) {

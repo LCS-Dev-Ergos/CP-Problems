@@ -398,6 +398,22 @@ def _build(payload: dict[str, Any], *, source: str | None = None) -> ProfileRegi
 
     scaffolds = {n: _scaffold(n, b, known_io) for n, b in _sub_tables(payload, "scaffold").items()}
 
+    known_features = frozenset(features)
+    for profile in io_profiles.values():
+        unknown = sorted(profile.needs - known_features)
+        if unknown:
+            raise ValueError(
+                f"io_profile.{profile.name}.needs references unknown feature(s): "
+                + ", ".join(unknown)
+            )
+    for scaffold in scaffolds.values():
+        unknown = sorted(scaffold.needs - known_features)
+        if unknown:
+            raise ValueError(
+                f"scaffold.{scaffold.name}.needs references unknown feature(s): "
+                + ", ".join(unknown)
+            )
+
     return ProfileRegistry(
         schema_version=schema,
         io_profiles=io_profiles,
@@ -408,13 +424,31 @@ def _build(payload: dict[str, Any], *, source: str | None = None) -> ProfileRegi
     )
 
 
+def validate_header_files(registry: ProfileRegistry, templates_dir: Path) -> None:
+    """Reject missing or escaping feature headers before code generation starts."""
+
+    root = templates_dir.resolve()
+    for feature in registry.features.values():
+        for header in feature.all_headers():
+            candidate = (root / header).resolve()
+            try:
+                candidate.relative_to(root)
+            except ValueError as error:
+                raise ValueError(f"feature.{feature.name}: header escapes templates/: {header}") from error
+            if not candidate.is_file():
+                raise ValueError(f"feature.{feature.name}: header does not exist: {header}")
+
+
 @lru_cache(maxsize=4)
 def load_registry(path: str | None = None) -> ProfileRegistry:
     """Load and cache a profile registry from ``path`` or the default TOML file."""
 
     resolved = Path(path) if path else DEFAULT_PROFILES_PATH
     with open(resolved, "rb") as f:
-        return _build(tomllib.load(f), source=str(resolved))
+        registry = _build(tomllib.load(f), source=str(resolved))
+    if resolved.resolve() == DEFAULT_PROFILES_PATH.resolve():
+        validate_header_files(registry, TEMPLATES_DIR)
+    return registry
 
 
 def reset_cache() -> None:

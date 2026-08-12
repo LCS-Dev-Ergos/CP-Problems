@@ -1,8 +1,8 @@
 #pragma once
-#include "templates/advanced/Concepts.hpp"
+#include "templates/advanced/RangeStreamConcepts.hpp"
 
 //===----------------------------------------------------------------------===//
-/* Strong Nominal Typing Utility */
+/* Strong Types */
 
 namespace cp {
 
@@ -11,6 +11,7 @@ class StrongType {
 public:
   using value_type = T;
   using tag_type   = Tag;
+  using CPStrongTypeMarker = void;
 
   constexpr StrongType()
     requires std::default_initializable<T> = default;
@@ -26,8 +27,10 @@ public:
   [[nodiscard]] constexpr T&  get() &  noexcept { return value_; }
   [[nodiscard]] constexpr T&& get() && noexcept { return std::move(value_); }
 
-  [[nodiscard]] explicit constexpr operator const T&() const noexcept { return value_; }
-  [[nodiscard]] explicit constexpr operator T&() noexcept { return value_; }
+  [[nodiscard]] explicit constexpr operator const T&() const& noexcept { return value_; }
+  [[nodiscard]] explicit constexpr operator T&() & noexcept { return value_; }
+  explicit operator const T&() const&& = delete;
+  explicit operator T&() && = delete;
 
   friend constexpr bool operator==(const StrongType&, const StrongType&) = default;
   friend constexpr auto operator<=>(const StrongType&, const StrongType&)
@@ -146,9 +149,8 @@ public:
   }
 
   friend constexpr void swap(StrongType& a, StrongType& b)
-      noexcept(noexcept(std::swap(a.get(), b.get()))) {
-    using std::swap;
-    swap(a.value_, b.value_);
+      noexcept(noexcept(std::ranges::swap(a.get(), b.get()))) {
+    std::ranges::swap(a.value_, b.value_);
   }
 
 private:
@@ -177,7 +179,7 @@ template <class T, class Tag>
 
 template <class Tag, class T>
 [[nodiscard]] constexpr auto strong(T&& value) {
-  using U = remove_cvref_t<T>;
+  using U = RemoveCvrefT<T>;
   return StrongType<U, Tag>(std::forward<T>(value));
 }
 
@@ -188,8 +190,9 @@ using StrongInt = StrongType<T, Tag>;
 
 #ifndef CP_DECLARE_STRONG_TYPE
   #define CP_DECLARE_STRONG_TYPE(Name, UnderlyingType) \
-    struct Name##_tag {}; \
-    using Name = cp::StrongType<UnderlyingType, Name##_tag>
+    struct Name##Tag {}; \
+    using Name##_tag = Name##Tag; \
+    using Name = cp::StrongType<UnderlyingType, Name##Tag>
 #endif
 
 namespace std {

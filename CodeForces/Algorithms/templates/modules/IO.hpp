@@ -1,4 +1,5 @@
 #pragma once
+#include "templates/core/Contracts.hpp"
 #include "templates/core/ScalarTypes.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -11,7 +12,7 @@ inline void setup() {
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
   std::cout.tie(nullptr);
-  std::cout << std::fixed << std::setprecision(10);
+  std::cout << std::fixed << std::setprecision(CP_FLOAT_PRECISION);
 }
 
 struct IOSetup {
@@ -21,10 +22,14 @@ struct IOSetup {
 inline IOSetup io_setup;
 
 template <class T>
-void read(T& x) { std::cin >> x; }
+void read(T& x) {
+  CP_EXPECT(bool(std::cin >> x), "I/O: failed to read a value.");
+}
 
 template <class T>
-void write(const T& x) { std::cout << x; }
+void write(const T& x) {
+  CP_EXPECT(bool(std::cout << x), "I/O: failed to write a value.");
+}
 
 #if CP_IO_ENABLE_COMPOSITE
   #define CP_IO_COMPOSITE_CONTEXT 1
@@ -84,7 +89,7 @@ using cp_io::writeln;
 #ifdef CP_IO_IMPL_WRITELN
   #undef CP_IO_IMPL_WRITELN
 #endif
-  #ifdef CP_IO_IMPL_FLUSH
+#ifdef CP_IO_IMPL_FLUSH
   #undef CP_IO_IMPL_FLUSH
 #endif
 

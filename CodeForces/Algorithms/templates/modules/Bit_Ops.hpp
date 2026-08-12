@@ -1,6 +1,6 @@
 #pragma once
-#include "templates/core/Debug.hpp"
-#include "templates/core/IdiomAliases.hpp"
+#include "templates/core/Contracts.hpp"
+#include "templates/core/CoreConcepts.hpp"
 #include "templates/core/TypeTraits.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -27,7 +27,7 @@ using std::popcount;
 template <cp::detail::OwnBitOps T>
 [[gnu::always_inline]] constexpr I32 popcount(T x) {
   using Raw = std::remove_cv_t<T>;
-  using U   = cp::make_unsigned_t<Raw>;
+  using U   = cp::MakeUnsignedT<Raw>;
   if constexpr (sizeof(Raw) <= 4)
     return __builtin_popcount(U32(U(x)));
   else if constexpr (sizeof(Raw) <= 8)
@@ -41,7 +41,7 @@ template <cp::detail::OwnBitOps T>
 template <cp::Int T>
 [[gnu::always_inline]] constexpr I32 leading_zeros(T x) {
   using Raw = std::remove_cv_t<T>;
-  using U   = cp::make_unsigned_t<Raw>;
+  using U   = cp::MakeUnsignedT<Raw>;
   U ux = U(x);
   if (ux == 0)
     return sizeof(Raw) * 8;
@@ -60,7 +60,7 @@ template <cp::Int T>
 template <cp::Int T>
 [[gnu::always_inline]] constexpr I32 trailing_zeros(T x) {
   using Raw = std::remove_cv_t<T>;
-  using U   = cp::make_unsigned_t<Raw>;
+  using U   = cp::MakeUnsignedT<Raw>;
   U ux = U(x);
   if (ux == 0)
     return sizeof(Raw) * 8;
@@ -84,8 +84,8 @@ template <cp::detail::OwnBitOps T>
 // Shifts run on the unsigned representation: `T(1) << 63` on a signed T is UB.
 template <cp::detail::OwnBitOps T>
 [[gnu::always_inline]] constexpr T bit_floor(T x) {
-  using U = cp::make_unsigned_t<std::remove_cv_t<T>>;
-  my_assert(x >= T(0) && "bit_floor(): negative input.");
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  CP_EXPECT(x >= T(0), "bit_floor(): negative input.");
   const U ux = U(x);
   if (ux == 0)
     return 0;
@@ -94,12 +94,16 @@ template <cp::detail::OwnBitOps T>
 
 template <cp::detail::OwnBitOps T>
 [[gnu::always_inline]] constexpr T bit_ceil(T x) {
-  using U = cp::make_unsigned_t<std::remove_cv_t<T>>;
-  my_assert(x >= T(0) && "bit_ceil(): negative input.");
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  CP_EXPECT(x >= T(0), "bit_ceil(): negative input.");
   const U ux = U(x);
   if (ux <= 1)
     return 1;
-  return as<T>(U(U(1) << bit_width(U(ux - 1))));
+  const I32 shift = bit_width(U(ux - 1));
+  constexpr I32 value_bits = Limits<T>::digits;
+  CP_EXPECT(shift < value_bits,
+            "bit_ceil(): result is not representable in the destination type.");
+  return as<T>(U(U(1) << shift));
 }
 
 template <cp::Int T>
@@ -107,27 +111,28 @@ template <cp::Int T>
 
 template <cp::Int T>
 constexpr T kth_bit(I32 k) {
-  using U = cp::make_unsigned_t<std::remove_cv_t<T>>;
-  my_assert(k >= 0 && k < I32(sizeof(T) * 8) && "kth_bit(): shift out of range.");
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  CP_EXPECT(k >= 0 && k < I32(sizeof(T) * 8), "kth_bit(): shift out of range.");
   return as<T>(U(U(1) << k));
 }
 
 template <cp::Int T>
 constexpr bool has_kth_bit(T x, I32 k) {
-  using U = cp::make_unsigned_t<std::remove_cv_t<T>>;
-  my_assert(k >= 0 && k < I32(sizeof(T) * 8) && "has_kth_bit(): shift out of range.");
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  CP_EXPECT(k >= 0 && k < I32(sizeof(T) * 8), "has_kth_bit(): shift out of range.");
   return ((U(x) >> k) & U(1)) != U(0);
 }
 
 /// @brief Iterate over set bits in a mask, yielding their 0-based indices.
 template <cp::Int T>
 struct BitRange {
-  T mask;
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  U mask;
 
   struct iterator {
-    T current;
+    U current;
 
-    iterator(T mask) : current(mask) {}
+    explicit iterator(U value) : current(value) {}
 
     I32 operator*() const { return trailing_zeros(current); }
 
@@ -139,7 +144,10 @@ struct BitRange {
     bool operator!=(const iterator&) const { return current != 0; }
   };
 
-  BitRange(T mask) : mask(mask) {}
+  explicit BitRange(T value) : mask(as<U>(value)) {
+    if constexpr (cp::Signed<T>)
+      CP_EXPECT(value >= 0, "BitRange(): mask must be non-negative.");
+  }
 
   iterator begin() const { return iterator(mask); }
   iterator end() const { return iterator(0); }
@@ -147,15 +155,16 @@ struct BitRange {
 
 template <cp::Int T>
 struct SubsetRange {
-  T mask;
+  using U = cp::MakeUnsignedT<std::remove_cv_t<T>>;
+  U mask;
 
   struct iterator {
-    T    subset, original;
+    U    subset, original;
     bool finished;
 
-    iterator(T mask) : subset(mask), original(mask), finished(false) {}
+    explicit iterator(U value) : subset(value), original(value), finished(false) {}
 
-    T operator*() const { return original ^ subset; }
+    T operator*() const { return as<T>(original ^ subset); }
 
     iterator& operator++() {
       if (subset == 0)
@@ -168,7 +177,10 @@ struct SubsetRange {
     bool operator!=(const iterator&) const { return !finished; }
   };
 
-  SubsetRange(T mask) : mask(mask) {}
+  explicit SubsetRange(T value) : mask(as<U>(value)) {
+    if constexpr (cp::Signed<T>)
+      CP_EXPECT(value >= 0, "SubsetRange(): mask must be non-negative.");
+  }
 
   iterator begin() const { return iterator(mask); }
   iterator end() const { return iterator(0); }

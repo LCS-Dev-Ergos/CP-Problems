@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_SQRT_DECOMPOSITION_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Sqrt decomposition for point updates and range-sum queries.

@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_GARNER_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Euclid.hpp"
 
 /**

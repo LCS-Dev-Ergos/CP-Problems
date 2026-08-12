@@ -7,16 +7,11 @@
 #endif
 
 #ifdef NEED_CORE
-  #include "templates/core/ScalarTypes.hpp"
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/core/Constants.hpp"
-  #include "templates/core/Macros.hpp"
-  #include "templates/core/Types.hpp"
-  #if CP_CORE_ENABLE_MATH
-    #include "templates/core/MinMax.hpp"
-    #include "templates/core/Random.hpp"
-    #include "templates/modules/IntegerMath.hpp"
-  #endif
+  #include "templates/DefaultToolkit.hpp"
+#endif
+
+#ifdef NEED_DEFAULT_TOOLKIT
+  #include "templates/DefaultToolkit.hpp"
 #endif
 
 #ifdef NEED_SCALAR_TYPES
@@ -24,8 +19,6 @@
 #endif
 
 #ifdef NEED_TYPES
-  #include "templates/core/ScalarTypes.hpp"
-  #include "templates/core/ContainerAliases.hpp"
   #include "templates/core/Types.hpp"
 #endif
 
@@ -39,7 +32,7 @@
 
 #ifdef NEED_MATH
   #include "templates/core/MinMax.hpp"
-  #include "templates/core/Random.hpp"
+  #include "templates/modules/Random.hpp"
   #include "templates/modules/IntegerMath.hpp"
 #endif
 
@@ -52,7 +45,7 @@
 #endif
 
 #ifdef NEED_RANDOM
-  #include "templates/core/Random.hpp"
+  #include "templates/modules/Random.hpp"
 #endif
 
 #ifdef NEED_TIMER
@@ -64,18 +57,10 @@
 #endif
 
 #ifdef NEED_FAST_IO
-  #include "templates/core/ScalarTypes.hpp"
-  #include "templates/core/TypeTraits.hpp"
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/core/Macros.hpp"
   #include "templates/modules/Fast_IO.hpp"
 #endif
 
 #ifdef NEED_IO
-  #include "templates/core/ScalarTypes.hpp"
-  #include "templates/core/TypeTraits.hpp"
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/core/Macros.hpp"
   #include "templates/modules/IO.hpp"
 #endif
 
@@ -92,11 +77,19 @@
 #endif
 
 #ifdef NEED_CONTAINERS
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/modules/Containers.hpp"
+  #include "templates/modules/ContainerAlgorithms.hpp"
+  #include "templates/modules/NdVec.hpp"
+  #include "templates/modules/Search.hpp"
+#endif
+
+#ifdef NEED_CONTAINER_ALGORITHMS
+  #include "templates/modules/ContainerAlgorithms.hpp"
 #endif
 
 #ifdef NEED_NDVEC
-  #include "templates/core/ContainerAliases.hpp"
-  #include "templates/modules/Containers.hpp"
+  #include "templates/modules/NdVec.hpp"
+#endif
+
+#ifdef NEED_SEARCH
+  #include "templates/modules/Search.hpp"
 #endif

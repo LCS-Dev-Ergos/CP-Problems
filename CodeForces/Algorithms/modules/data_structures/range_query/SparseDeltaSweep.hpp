@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_SPARSE_DELTA_SWEEP_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Sparse difference-array sweep with O(K log K) per round, where K is touched positions.
 struct SparseDeltaSweep {

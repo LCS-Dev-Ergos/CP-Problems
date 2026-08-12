@@ -2,6 +2,7 @@
 #define CP_MODULES_GEOMETRY_POINT_IN_CONVEX_POLYGON_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Point2D.hpp"
 
 /**

@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_HLD_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Graph.hpp"
 
 /**

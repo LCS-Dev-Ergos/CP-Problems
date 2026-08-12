@@ -3,9 +3,6 @@
 // Generated from profiles.toml. Do not edit by hand.
 
 #if defined(CP_TEMPLATE_PROFILE_STRICT)
-  #ifndef CP_CORE_ENABLE_MATH
-    #define CP_CORE_ENABLE_MATH 0
-  #endif
   #ifndef CP_USE_GLOBAL_STD_NAMESPACE
     #define CP_USE_GLOBAL_STD_NAMESPACE 0
   #endif
@@ -14,9 +11,6 @@
   #endif
 #endif
 
-#ifndef CP_CORE_ENABLE_MATH
-  #define CP_CORE_ENABLE_MATH 1
-#endif
 #ifndef CP_USE_GLOBAL_STD_NAMESPACE
   #define CP_USE_GLOBAL_STD_NAMESPACE 1
 #endif
@@ -36,10 +30,25 @@
   #define CP_ENABLE_FAST_MATH 0
 #endif
 #ifndef CP_ENABLE_GCC_OPTIMIZE_PRAGMAS
-  #define CP_ENABLE_GCC_OPTIMIZE_PRAGMAS 1
+  #define CP_ENABLE_GCC_OPTIMIZE_PRAGMAS 0
 #endif
 #ifndef CP_ENABLE_ARCH_TARGET_PRAGMAS
   #define CP_ENABLE_ARCH_TARGET_PRAGMAS 0
+#endif
+#ifndef CP_USE_ADVANCED
+  #define CP_USE_ADVANCED 0
+#endif
+#ifndef CP_FAST_IO_VARIANT
+  #define CP_FAST_IO_VARIANT 1
+#endif
+#ifndef CP_FLOAT_PRECISION
+  #define CP_FLOAT_PRECISION 10
+#endif
+#ifndef CP_FAST_IO_MAX_TOKEN_SIZE
+  #define CP_FAST_IO_MAX_TOKEN_SIZE 16777216
+#endif
+#ifndef CP_ENABLE_SHORT_MACROS
+  #define CP_ENABLE_SHORT_MACROS 1
 #endif
 #ifndef CP_DEBUG_ENABLE_PERF
   #define CP_DEBUG_ENABLE_PERF 0

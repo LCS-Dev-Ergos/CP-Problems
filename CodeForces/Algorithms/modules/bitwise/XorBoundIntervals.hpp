@@ -2,6 +2,7 @@
 #define CP_MODULES_BITWISE_XOR_BOUND_INTERVALS_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Precomputes interval decomposition for sets {j in [0, m] : (j xor x) <= m}.
 struct XorBoundIntervals {

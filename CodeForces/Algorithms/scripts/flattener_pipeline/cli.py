@@ -120,20 +120,6 @@ def _build_flatten_context(args: argparse.Namespace) -> tuple[FlattenContext, Fl
 
     used_identifiers = frozenset(extract_identifiers(source_content))
 
-    # Flattened output is always a standalone judge submission (never the
-    # PCH/workspace build), so enable architecture-target pragmas; they stay
-    # auto-guarded by the __x86_64__/__aarch64__ checks in core/Compiler.hpp.
-    # The profiles.toml default stays 0 to keep PCH/.gch builds mismatch-free,
-    # and that default is already merged into ``macro_values`` above, so a plain
-    # setdefault would be a no-op. Force the flattener default on instead, but
-    # honor an explicit pin in the user's own source prefix.
-    if not re.search(
-        r"^\s*#\s*define\s+CP_ENABLE_ARCH_TARGET_PRAGMAS\b",
-        source_prefix,
-        re.MULTILINE,
-    ):
-        macro_values["CP_ENABLE_ARCH_TARGET_PRAGMAS"] = 1
-
     strip_module_docs = env_flag_enabled("CP_FLATTENER_STRIP_MODULE_DOCS")
     strip_template_docs = args.strip_docs or env_flag_enabled("CP_FLATTENER_STRIP_TEMPLATE_DOCS")
 
@@ -171,6 +157,16 @@ def _build_flatten_context(args: argparse.Namespace) -> tuple[FlattenContext, Fl
     need_mapping = load_need_mapping(base_template_path)
     if not need_mapping:
         sys.stderr.write(f"Error: Unable to derive NEED_* mapping from {base_template_path}\n")
+        raise SystemExit(1)
+    unknown_needs = sorted(
+        name
+        for name, value in macro_values.items()
+        if name.startswith("NEED_") and value != 0 and name not in need_mapping
+    )
+    if unknown_needs:
+        sys.stderr.write(
+            "Error: Unknown template feature macro(s): " + ", ".join(unknown_needs) + "\n"
+        )
         raise SystemExit(1)
 
     ctx = FlattenContext(

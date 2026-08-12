@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_DYNAMIC_SEGMENT_TREE_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Dynamic segment tree on an arbitrary integer interval.
 template <typename Monoid, bool Persistent = false>

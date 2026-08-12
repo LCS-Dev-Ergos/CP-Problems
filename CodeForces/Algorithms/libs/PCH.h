@@ -19,13 +19,13 @@
   #define CP_ENABLE_AGGRESSIVE_OPTIMIZATIONS 1
 #endif
 #ifndef CP_ENABLE_ARCH_TARGET_PRAGMAS
-  #define CP_ENABLE_ARCH_TARGET_PRAGMAS 1
+  #define CP_ENABLE_ARCH_TARGET_PRAGMAS 0
 #endif
 // Signal that this PCH manages the preamble (Compiler/StdHeaders/Debug)
 // directly, so Types.hpp must not re-enter Preamble.hpp.
 #define CP_TYPES_NO_PREAMBLE 1
 
-#include "templates/core/Compiler.hpp"       // Optimizer pragmas + Diagnostic push
+#include "templates/core/Compiler.hpp"       // Explicit GCC optimizer/target opt-ins
 #include "templates/core/StdHeaders.hpp"     // PortableStdHeaders.hpp (CP_USE_BITS_HEADER=0)
 #include "templates/core/FeatureDetect.hpp"
 #include "templates/core/Debug.hpp"
@@ -36,7 +36,7 @@
 #include "templates/core/Constants.hpp"      // PI, E, INF32/64, MOD, POW10[], ...
 #include "templates/core/MinMax.hpp"         // chmin/chmax with optional Compare
 #include "templates/core/Macros.hpp"         // FOR, sz, ALL, fix, as<>, ...
-#include "templates/core/Random.hpp"         // rng (mt19937_64), rnd(), reseed()
+#include "templates/modules/Random.hpp"      // rng (mt19937_64), rnd(), reseed()
 
 //===----------------------------------------------------------------------===//
 // Legacy type aliases for older round sources that include PCH directly.
@@ -128,13 +128,6 @@ struct IOOptimizer {
 #if __cplusplus >= 202002L
   namespace ranges = std::ranges;
   namespace views  = std::ranges::views;
-#endif
-
-// Restore diagnostic state opened by Compiler.hpp.
-#if defined(__GNUC__) && !defined(__clang__)
-  #pragma GCC diagnostic pop
-#elif defined(__clang__)
-  #pragma clang diagnostic pop
 #endif
 
 //===----------------------------------------------------------------------===//

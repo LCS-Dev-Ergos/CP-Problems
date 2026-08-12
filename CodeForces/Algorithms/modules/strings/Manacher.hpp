@@ -2,6 +2,7 @@
 #define CP_MODULES_STRINGS_MANACHER_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Manacher algorithm for palindromic substrings in linear time.
 struct Manacher {

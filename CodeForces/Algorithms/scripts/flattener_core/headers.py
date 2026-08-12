@@ -1,16 +1,4 @@
-"""Template-header tables, lazy augmentation, and tree-shaking policy.
-
-Owns the hand-maintained tables that map every ``templates/*.hpp`` header
-to its trigger tokens (``OPTIONAL_HEADER_TRIGGER_TOKENS``) and hard
-dependencies (``HEADER_DEPENDENCIES``). ``ensure_augmented_tables`` runs
-once on first use (``@functools.cache``) to union the tables with symbols
-actually exported by the headers on disk, keeping the maps in sync without
-slowing down cold imports.
-
-``prune_template_headers_with_policy`` is the tree-shaking entry point used
-by the pipeline: it keeps only headers whose tokens appear in user source,
-while pulling in every hard dependency they require to compile.
-"""
+"""Template-header metadata and tree-shaking."""
 
 from __future__ import annotations
 
@@ -36,13 +24,16 @@ TIMER_HPP = "Timer.hpp"
 IO_DEFS_HPP = "IO_Defs.hpp"
 IO_HPP = "IO.hpp"
 FAST_IO_HPP = "Fast_IO.hpp"
-FAST_IO_EXT_MOD_INT_HPP = "Fast_IO_Ext_ModInt.hpp"
-FAST_IO_EXT_STRONG_TYPE_HPP = "Fast_IO_Ext_StrongType.hpp"
 PBDS_HPP = "PBDS.hpp"
 BIT_OPS_HPP = "Bit_Ops.hpp"
 CONTAINERS_HPP = "Containers.hpp"
+NDVEC_HPP = "NdVec.hpp"
+SEARCH_HPP = "Search.hpp"
+CONTAINER_ALGORITHMS_HPP = "ContainerAlgorithms.hpp"
 MOD_INT_HPP = "Mod_Int.hpp"
 CONCEPTS_HPP = "Concepts.hpp"
+CORE_CONCEPTS_HPP = "CoreConcepts.hpp"
+RANGE_STREAM_CONCEPTS_HPP = "RangeStreamConcepts.hpp"
 CAST_HPP = "Cast.hpp"
 STRONG_TYPE_HPP = "Strong_Type.hpp"
 HASHING_HPP = "Hashing.hpp"
@@ -65,7 +56,8 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "PairI32", "PairI64", "PairF80", "VecPair", "VecPairI32", "VecPairI64",
     },
     TYPE_TRAITS_HPP: {
-        "remove_cvref_t", "make_unsigned_t", "as", "sz64", "sz32", "loop_t",
+        "RemoveCvrefT", "MakeUnsignedT", "remove_cvref_t", "make_unsigned_t",
+        "as",
     },
     IDIOM_ALIASES_HPP: {
         "Same", "Int", "Float", "Signed", "Unsigned", "NonBoolInt", "Arithmetic",
@@ -77,6 +69,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "Deque", "List", "Set", "MultiSet", "UnorderedSet", "Map", "MultiMap",
         "UnorderedMap", "Stack", "Queue", "PriorityQueue", "MinPriorityQueue",
         "Pair", "Tuple",
+        "OrderedSet", "OrderedMultiSet", "OrderedMap", "GPHashTable",
         "ordered_set", "ordered_multiset", "ordered_map", "gp_hash_table",
         "HAS_INT128", "HAS_FLOAT128",
         "PBDS_AVAILABLE",
@@ -91,6 +84,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "rall", "sz", "len", "eb", "elif",
         "UNIQUE", "LB", "UB", "SUM", "MIN",
         "MAX", "fix", "YCombinator", "isz", "sum_range", "ROF", "FORD",
+        "sz64", "sz32", "LoopT",
     },
     INTEGER_MATH_HPP: {
         "div_floor", "div_ceil", "mod_floor", "divmod", "power", "mod_pow",
@@ -116,6 +110,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "YES", "NO", "Yes", "No",
     },
     PBDS_HPP: {
+        "OrderedSet", "OrderedMultiSet", "OrderedMap", "GPHashTable",
         "ordered_set", "ordered_multiset", "ordered_map", "gp_hash_table",
         "tree_order_statistics_node_update", "find_by_order", "order_of_key",
     },
@@ -129,10 +124,22 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
         "concat", "sum_as", "string_to_ints", "pop_val",
         "make_vec2", "make_vec3", "make_vec4",
     },
+    NDVEC_HPP: {"make_vec2", "make_vec3", "make_vec4"},
+    SEARCH_HPP: {"binary_search", "binary_search_real"},
+    CONTAINER_ALGORITHMS_HPP: {
+        "argsort", "rearrange", "cumsum", "concat", "sum_as", "string_to_ints", "pop_val",
+    },
     MOD_INT_HPP: {
         "ModInt", "DynModInt", "MInt", "MInt2", "DMInt",
     },
     CONCEPTS_HPP: {
+        "IndexLike", "Range", "SizedRange", "StreamReadable", "StreamWritable",
+    },
+    CORE_CONCEPTS_HPP: {
+        "Same", "Int", "Float", "Signed", "Unsigned", "NonBoolInt", "Arithmetic",
+        "Conditional", "Enum", "Predicate", "Hashable",
+    },
+    RANGE_STREAM_CONCEPTS_HPP: {
         "IndexLike", "Range", "SizedRange", "StreamReadable", "StreamWritable",
     },
     CAST_HPP: {
@@ -153,31 +160,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
 }
 # fmt: on
 
-HEADER_DEPENDENCIES: dict[str, set[str]] = {
-    TYPES_HPP: {SCALAR_TYPES_HPP, CONTAINER_ALIASES_HPP},
-    CONTAINER_ALIASES_HPP: {SCALAR_TYPES_HPP},
-    TYPE_TRAITS_HPP: {SCALAR_TYPES_HPP},
-    IDIOM_ALIASES_HPP: {SCALAR_TYPES_HPP, TYPE_TRAITS_HPP},
-    CONSTANTS_HPP: {SCALAR_TYPES_HPP},
-    MACROS_HPP: {SCALAR_TYPES_HPP, TYPE_TRAITS_HPP, IDIOM_ALIASES_HPP},
-    INTEGER_MATH_HPP: {IDIOM_ALIASES_HPP, MACROS_HPP, TYPE_TRAITS_HPP},
-    MINMAX_HPP: set(),
-    RANDOM_HPP: {IDIOM_ALIASES_HPP, MACROS_HPP},
-    TIMER_HPP: {SCALAR_TYPES_HPP},
-    IO_DEFS_HPP: {SCALAR_TYPES_HPP},
-    IO_HPP: {SCALAR_TYPES_HPP, IO_DEFS_HPP},
-    FAST_IO_HPP: {SCALAR_TYPES_HPP, MACROS_HPP, IDIOM_ALIASES_HPP, IO_DEFS_HPP},
-    FAST_IO_EXT_MOD_INT_HPP: {FAST_IO_HPP, MOD_INT_HPP},
-    FAST_IO_EXT_STRONG_TYPE_HPP: {FAST_IO_HPP, STRONG_TYPE_HPP},
-    BIT_OPS_HPP: {IDIOM_ALIASES_HPP, TYPE_TRAITS_HPP},
-    CONTAINERS_HPP: {CONTAINER_ALIASES_HPP, IDIOM_ALIASES_HPP},
-    MOD_INT_HPP: {SCALAR_TYPES_HPP, CONSTANTS_HPP},
-    CONCEPTS_HPP: {IDIOM_ALIASES_HPP},
-    CAST_HPP: {CONTAINER_ALIASES_HPP, CONCEPTS_HPP},
-    STRONG_TYPE_HPP: {CONCEPTS_HPP},
-    HASHING_HPP: {IDIOM_ALIASES_HPP, TYPE_TRAITS_HPP},
-    DEBUG_HPP: set(),
-}
+HEADER_DEPENDENCIES: dict[str, set[str]] = {}
 
 MODULE_SECTION_SEPARATOR = (
     "//===----------------------------------------------------------------------===//\n"

@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_WAVELET_MATRIX_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Static wavelet matrix over a compressed ordered domain.
 template <typename T>

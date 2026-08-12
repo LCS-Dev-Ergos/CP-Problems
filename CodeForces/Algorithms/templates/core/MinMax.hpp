@@ -18,13 +18,13 @@
 #endif
 
 template <typename T>
-constexpr const T& _min(const T& a, const T& b) { return (b < a) ? b : a; }
+constexpr T _min(const T& a, const T& b) { return (b < a) ? b : a; }
 
 template <typename T>
-constexpr const T& _max(const T& a, const T& b) { return (a < b) ? b : a; }
+constexpr T _max(const T& a, const T& b) { return (a < b) ? b : a; }
 
 template <typename T, typename... Args>
-constexpr const T& _min(const T& a, const T& b, const Args&... args) { return _min(a, _min(b, args...)); }
+constexpr T _min(const T& a, const T& b, const Args&... args) { return _min(a, _min(b, args...)); }
 
 template <typename T, typename... Args>
-constexpr const T& _max(const T& a, const T& b, const Args&... args) { return _max(a, _max(b, args...)); }
+constexpr T _max(const T& a, const T& b, const Args&... args) { return _max(a, _max(b, args...)); }

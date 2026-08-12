@@ -2,6 +2,7 @@
 #define CP_MODULES_GEOMETRY_HALF_PLANE_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Polygon.hpp"
 
 /// @brief Half-plane represented by directed line (left side is feasible).

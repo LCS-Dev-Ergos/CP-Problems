@@ -1,5 +1,6 @@
 #pragma once
 #include "templates/core/FeatureDetect.hpp"
+#include "templates/core/Contracts.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Debug and Assertion Policy */

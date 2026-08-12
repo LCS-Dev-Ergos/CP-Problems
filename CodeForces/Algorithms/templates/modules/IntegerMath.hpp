@@ -1,6 +1,6 @@
 #pragma once
-#include "templates/core/IdiomAliases.hpp"
-#include "templates/core/Macros.hpp"
+#include "templates/core/Contracts.hpp"
+#include "templates/core/CoreConcepts.hpp"
 #include "templates/core/TypeTraits.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -10,6 +10,8 @@ namespace cp::detail {
 
 template <cp::Unsigned T>
 [[gnu::always_inline]] constexpr T mul_mod_unsigned(T a, T b, T mod) {
+  CP_EXPECT(mod != 0, "mul_mod_unsigned(): modulus must be non-zero.");
+  a %= mod;
 #if HAS_INT128
   if constexpr (sizeof(T) <= sizeof(U64)) {
     return as<T>((as<U128>(a) * as<U128>(b)) % as<U128>(mod));
@@ -39,7 +41,7 @@ template <cp::Unsigned T>
 
 template <cp::Signed T>
 [[gnu::always_inline]] constexpr T safe_mod(T x, T mod) {
-  my_assert(mod > 0);
+  CP_EXPECT(mod > 0, "safe_mod(): modulus must be positive.");
   x %= mod;
   if (x < 0)
     x += mod;
@@ -48,7 +50,7 @@ template <cp::Signed T>
 
 template <cp::Signed T>
 [[gnu::always_inline]] constexpr std::pair<T, T> inv_gcd(T a, T b) {
-  my_assert(b > 0);
+  CP_EXPECT(b > 0, "inv_gcd(): modulus must be positive.");
   a = safe_mod(a, b);
   if (a == 0)
     return {b, 0};
@@ -72,17 +74,18 @@ template <cp::Signed T>
 template <cp::Signed T>
 [[gnu::always_inline]] constexpr T mod_inv(T a, T mod) {
   auto [g, x] = inv_gcd(a, mod);
-  my_assert(g == 1 && "mod_inv(): inverse does not exist when gcd(value, mod) != 1.");
-  return g == 1 ? x : 0;
+  CP_EXPECT(g == 1, "mod_inv(): inverse does not exist.");
+  return x;
 }
 
 template <cp::Signed T>
 [[gnu::always_inline]] constexpr bool merge_congruences(T& r1, T& m1, T r2, T m2) {
-  my_assert(m1 > 0 && m2 > 0);
+  CP_EXPECT(m1 > 0 && m2 > 0, "merge_congruences(): moduli must be positive.");
   r1 = safe_mod(r1, m1);
   r2 = safe_mod(r2, m2);
 
-  T target = safe_mod(r2 - r1, m2);
+  const T r1_mod = safe_mod(r1, m2);
+  const T target = r2 >= r1_mod ? r2 - r1_mod : m2 - (r1_mod - r2);
   auto [g, x] = inv_gcd(m1, m2);
   if (target % g != 0)
     return false;
@@ -90,9 +93,10 @@ template <cp::Signed T>
   const T m2_g = m2 / g;
   const T lhs  = safe_mod(target / g, m2_g);
   const T rhs  = safe_mod(x, m2_g);
-  using U = cp::make_unsigned_t<T>;
+  using U = cp::MakeUnsignedT<T>;
   const T step = as<T>(cp::detail::mul_mod_unsigned(as<U>(lhs), as<U>(rhs), as<U>(m2_g)));
 
+  CP_EXPECT(m1 <= Limits<T>::max() / m2_g, "merge_congruences(): lcm overflows result type.");
   r1 += step * m1;
   m1 *= m2_g;
   r1 = safe_mod(r1, m1);
@@ -101,8 +105,9 @@ template <cp::Signed T>
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T div_floor(T a, T b) {
-  my_assert(b != 0);
+  CP_EXPECT(b != 0, "div_floor(): divisor must be non-zero.");
   if constexpr (cp::Signed<T>) {
+    CP_EXPECT(!(a == Limits<T>::min() && b == T(-1)), "div_floor(): quotient overflows.");
     T q = a / b;
     T r = a % b;
     if (r != 0 && ((r > 0) != (b > 0)))
@@ -115,8 +120,9 @@ template <cp::Int T>
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T div_ceil(T a, T b) {
-  my_assert(b != 0);
+  CP_EXPECT(b != 0, "div_ceil(): divisor must be non-zero.");
   if constexpr (cp::Signed<T>) {
+    CP_EXPECT(!(a == Limits<T>::min() && b == T(-1)), "div_ceil(): quotient overflows.");
     T q = a / b;
     T r = a % b;
     if (r != 0 && ((r > 0) == (b > 0)))
@@ -129,24 +135,47 @@ template <cp::Int T>
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T mod_floor(T a, T b) {
-  return a - b * div_floor(a, b);
+  CP_EXPECT(b != 0, "mod_floor(): divisor must be non-zero.");
+  if constexpr (cp::Signed<T>)
+    CP_EXPECT(!(a == Limits<T>::min() && b == T(-1)), "mod_floor(): quotient overflows.");
+  T remainder = a % b;
+  if constexpr (cp::Signed<T>) {
+    if (remainder != 0 && ((remainder > 0) != (b > 0)))
+      remainder += b;
+  }
+  return remainder;
 }
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr std::pair<T, T> divmod(T a, T b) {
   T q = div_floor(a, b);
-  return {q, a - q * b};
+  return {q, mod_floor(a, b)};
 }
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T power(T base, T exp) {
   if constexpr (cp::Signed<T>)
-    my_assert(exp >= 0 && "power(): negative exponent has no integer result.");
+    CP_EXPECT(exp >= 0, "power(): negative exponent has no integer result.");
   T result = 1;
   while (exp > 0) {
-    if (exp & 1)
-      result *= base;
-    base *= base;
+    if (exp & 1) {
+      if constexpr (cp::Signed<T>) {
+        T next;
+        CP_EXPECT(!__builtin_mul_overflow(result, base, &next), "power(): result overflows.");
+        result = next;
+      } else {
+        result *= base;
+      }
+    }
+    if (exp > 1) {
+      if constexpr (cp::Signed<T>) {
+        T next;
+        CP_EXPECT(!__builtin_mul_overflow(base, base, &next), "power(): base square overflows.");
+        base = next;
+      } else {
+        base *= base;
+      }
+    }
     exp >>= 1;
   }
   return result;
@@ -154,17 +183,13 @@ template <cp::Int T>
 
 template <cp::Int T>
 [[gnu::always_inline]] constexpr T mod_pow(T base, T exp, T mod) {
-  my_assert(mod != 0);
+  CP_EXPECT(mod != 0, "mod_pow(): modulus must be non-zero.");
   if constexpr (cp::Signed<T>) {
-    my_assert(mod > 0);
-    my_assert(exp >= 0);
-    if (mod <= 0)
-      return 0;
-    if (exp < 0)
-      return 0;
+    CP_EXPECT(mod > 0, "mod_pow(): modulus must be positive.");
+    CP_EXPECT(exp >= 0, "mod_pow(): exponent must be non-negative.");
   }
 
-  using U  = cp::make_unsigned_t<T>;
+  using U  = cp::MakeUnsignedT<T>;
   U umod   = as<U>(mod);
   U uexp   = as<U>(exp);
   U ubase  = as<U>(mod_floor(base, mod));
@@ -183,12 +208,12 @@ template <cp::Int T>
 template <cp::Int T>
 [[gnu::always_inline]] inline T floor_sqrt(T x) {
   if constexpr (cp::Signed<T>) {
-    my_assert(x >= 0);
+    CP_EXPECT(x >= 0, "floor_sqrt(): input must be non-negative.");
     if (x < 0)
       return 0;
   }
 
-  using U = cp::make_unsigned_t<T>;
+  using U = cp::MakeUnsignedT<T>;
   const U ux = as<U>(x);
   if (ux <= 1)
     return as<T>(ux);
@@ -216,7 +241,7 @@ template <cp::Int T>
 
 template <cp::Int T>
 [[gnu::always_inline]] inline T ceil_sqrt(T x) {
-  using U      = cp::make_unsigned_t<T>;
+  using U      = cp::MakeUnsignedT<T>;
   const T root = floor_sqrt(x);
   const U uf   = as<U>(root);
   if (uf == 0)

@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_EUCLID_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Extended Euclidean Algorithm returning gcd and coefficients.
 template <typename T>

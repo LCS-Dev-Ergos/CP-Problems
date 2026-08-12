@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_LI_CHAO_TREE_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /**
  * @brief Dynamic Li Chao tree for minimum line queries.

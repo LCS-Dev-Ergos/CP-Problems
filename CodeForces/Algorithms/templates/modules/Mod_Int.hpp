@@ -1,32 +1,23 @@
 #pragma once
 #include "templates/modules/IntegerMath.hpp"
 #include "templates/core/Constants.hpp"
-#include "templates/core/IdiomAliases.hpp"
-#include "templates/core/Macros.hpp"
-#include "templates/core/Debug.hpp"
+#include "templates/core/Contracts.hpp"
+#include "templates/core/CoreConcepts.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Advanced Modular Arithmetic */
 
 struct Barrett {
   U32 m;
-  U64 im;
 
-  explicit constexpr Barrett(U32 mod) : m(mod), im(U64(-1) / mod + 1) {}
+  explicit constexpr Barrett(U32 mod) : m(mod) {
+    CP_EXPECT(mod > 0, "Barrett(): modulus must be positive.");
+  }
 
   constexpr U32 mod() const { return m; }
 
   constexpr U32 mul(U32 a, U32 b) const {
-#if HAS_INT128
-    U64 z = U64(a) * b;
-    U64 x = U64((U128(z) * im) >> 64);
-    U32 v = U32(z - x * m);
-    if (m <= v)
-      v += m;
-    return v;
-#else
     return U32((U64(a) * b) % m);
-#endif
   }
 };
 
@@ -89,7 +80,7 @@ struct DynamicModPolicy {
   inline static Barrett bt = Barrett(998'244'353);
 
   static void set_mod(U32 mod) {
-    my_assert(mod > 0);
+    CP_EXPECT(mod > 0, "DynModInt::set_mod(): modulus must be positive.");
     bt = Barrett(mod);
   }
 
@@ -119,13 +110,13 @@ struct DynamicModPolicy {
 
   static Value mul(Value a, Value b) { return bt.mul(a, b); }
 
-  // mod_inv already returns a canonical residue in [0, mod()).
   static Value inv(Value x) { return as<Value>(mod_inv(as<I64>(x), as<I64>(mod()))); }
 };
 
 template <class Derived, class Policy>
 struct ModIntBase {
   using Value = typename Policy::Value;
+  using CPModIntMarker = void;
   Value value = 0;
 
   constexpr ModIntBase() = default;
@@ -181,6 +172,7 @@ struct ModIntBase {
   }
 
   constexpr Derived pow(I64 exp) const {
+    CP_EXPECT(exp >= 0, "ModInt::pow(): exponent must be non-negative.");
     Derived result(1), base(self());
     while (exp > 0) {
       if (exp & 1)

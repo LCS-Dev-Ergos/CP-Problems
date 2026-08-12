@@ -2,6 +2,7 @@
 #define CP_MODULES_GEOMETRY_LINE2D_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 #include "Point2D.hpp"
 
 /// @brief 2D line in implicit form 'a * x + b * y = c'.

@@ -49,6 +49,7 @@ def extract_macro_values_from_source(
     """
 
     macro_values: MacroValueMap = {}
+    explicit_names: set[str] = set()
     skipped: list[str] = []
     code_only = strip_non_code(source_prefix_content)
     # The flattener is authoritative over the CP_*/NEED_* namespace even in the
@@ -86,6 +87,8 @@ def extract_macro_values_from_source(
         # the same regexes.
         update_macro_state_from_line(macro_values, stripped)
 
+    explicit_names.update(macro_values)
+
     if warn_stream is not None and skipped:
         warn_stream.write(
             "warning: ignoring conditional #defines (guard unresolved): "
@@ -108,14 +111,8 @@ def extract_macro_values_from_source(
     for need in io_needs:
         macro_values.setdefault(need, 1)
     for define_name, define_value in io_defines.items():
-        macro_values.setdefault(define_name, define_value)
-
-    # CP_USE_ADVANCED is a 0/1 switch consumed with ``#if``. It is intentionally
-    # *not* a profiles.toml default (Config_defaults runs before the IO profile
-    # and a default there would block the profile from turning it on). Resolve it
-    # to 0 here, after the profile has had its say, so the advanced ``#if`` guards
-    # fold cleanly out of non-advanced submissions.
-    macro_values.setdefault("CP_USE_ADVANCED", 0)
+        if define_name not in explicit_names:
+            macro_values[define_name] = define_value
 
     enabled_needs = {
         name for name, value in macro_values.items() if name.startswith("NEED_") and value != 0

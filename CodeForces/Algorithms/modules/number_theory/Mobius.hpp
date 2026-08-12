@@ -2,6 +2,7 @@
 #define CP_MODULES_NUMBER_THEORY_MOBIUS_HPP
 
 #include "_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Mobius function precomputation and inversion helper.
 struct Mobius {

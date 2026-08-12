@@ -2,6 +2,7 @@
 #define CP_MODULES_DATA_STRUCTURES_TREAP_HPP
 
 #include "../_Common.hpp"
+#include "templates/core/TypeTraits.hpp"
 
 /// @brief Randomized treap supporting duplicates and order statistics.
 struct Treap {

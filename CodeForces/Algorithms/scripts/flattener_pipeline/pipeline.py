@@ -36,20 +36,21 @@ from profile_registry import load_registry
 NEED_DEFINE_LINE_RE = re.compile(r"^\s*#\s*define\s+(NEED_\w+)\b")
 MAIN_SOLVER_SECTION_MARKER = "/* Main Solver Function */"
 
-_COND_DIRECTIVE_RE = re.compile(r"^\s*#\s*(?:if|elif|ifdef|ifndef)\b(.*)$")
 _IDENT_RE = re.compile(r"[A-Za-z_]\w*")
 SURVIVING_PROJECT_INCLUDE_RE = re.compile(r'^\s*#\s*include\s+"(?:templates|modules)/')
 
 
-def _referenced_condition_macros(blocks: list[str]) -> set[str]:
-    """Collect identifiers used inside ``#if``-family directives in ``blocks``."""
+def _referenced_config_macros(blocks: list[str]) -> set[str]:
+    """Collect config identifiers used by emitted template blocks.
+
+    Value macros such as ``CP_FLOAT_PRECISION`` can be consumed by normal C++
+    expressions, not only by ``#if``.  Scanning the complete emitted blocks
+    keeps their resolved registry values in standalone submissions too.
+    """
 
     referenced: set[str] = set()
     for block in blocks:
-        for line in block.splitlines():
-            match = _COND_DIRECTIVE_RE.match(line)
-            if match:
-                referenced.update(_IDENT_RE.findall(match.group(1)))
+        referenced.update(_IDENT_RE.findall(block))
     return referenced
 
 
@@ -67,7 +68,7 @@ def _render_resolved_prelude(blocks: list[str], macro_values: MacroValueMap) -> 
     """
 
     lines: list[str] = []
-    for name in sorted(_referenced_condition_macros(blocks)):
+    for name in sorted(_referenced_config_macros(blocks)):
         if not name.startswith(("CP_", "NEED_")):
             continue
         if name not in macro_values:
@@ -107,7 +108,11 @@ def _collect_needed_template_headers(
     # pulled transitively (e.g. via the fast-I/O StrongType extension). Usage
     # pruning drops whichever of these the source does not reference.
     if macro_values.get("CP_USE_ADVANCED"):
-        for filename in ("advanced/Concepts.hpp", "advanced/Cast.hpp", "advanced/Strong_Type.hpp"):
+        for filename in (
+            "advanced/RangeStreamConcepts.hpp",
+            "advanced/Cast.hpp",
+            "advanced/Strong_Type.hpp",
+        ):
             if filename not in included_names:
                 files_to_include.append(ctx.templates_dir / filename)
                 included_names.add(filename)
