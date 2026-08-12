@@ -99,6 +99,8 @@ def _render_base_contracts() -> str:
             "",
             AUTOGEN_HEADER.rstrip("\n"),
             "",
+            '#include "templates/core/Config_defaults.hpp"',
+            "",
             "#if CP_USE_ADVANCED != 0 && CP_USE_ADVANCED != 1",
             '  #error "CP_USE_ADVANCED must be 0 or 1."',
             "#endif",
