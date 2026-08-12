@@ -121,8 +121,9 @@ def test_flattener_fast_minimal_profile_selects_minimal_variant(
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "safe"})
 
     assert result.returncode == 0, result.stderr
-    # Variant 0 is folded in: full-reload input, no refill sentinel / extensions.
-    assert "Full reload" in result.stdout
+    assert "std::fread(input_buffer, 1, BUFFER_SIZE, stdin)" in result.stdout
+    assert "std::memmove" not in result.stdout
+    assert "input_eof" not in result.stdout
     assert "input_eof" not in result.stdout
     assert "#if CP_FAST_IO_VARIANT" not in result.stdout
     # Fast I/O dispatch binds to fast_io::read.
@@ -153,9 +154,8 @@ def test_flattener_fast_extended_profile_does_not_set_minimal_variant(
     # Variant 1 keeps the refill sentinel and drops the full-reload branch.
     assert "input_eof" in result.stdout
     assert "Full reload" not in result.stdout
-    # The fast_extended profile resolves CP_FAST_IO_ENABLE_MODINT=1, so the
-    # ModInt section is folded in (the guard macro itself is now collapsed away,
-    # which is why we assert on the materialized type, not the macro name).
+    # The profile declares NEED_MOD_INT; Fast I/O discovers its protocol through
+    # concepts rather than a second extension toggle.
     assert "ModInt" in result.stdout
 
 
@@ -184,3 +184,21 @@ def test_flattener_collision_fast_io_wins_over_simple(
     # cp_io must not be emitted alongside the fast backend.
     assert "namespace cp_io {" not in result.stdout
     assert "namespace fast_io {" in result.stdout
+
+
+def test_flattener_rejects_unknown_need_macro(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """A misspelled template feature must fail at the architectural boundary."""
+
+    source = write_source(
+        "probe.cpp",
+        '#define NEED_GRPAH\n#include "templates/Base.hpp"\nint main() {}\n',
+    )
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "safe"})
+
+    assert result.returncode == 1
+    assert "Unknown template feature macro" in result.stderr
+    assert "NEED_GRPAH" in result.stderr

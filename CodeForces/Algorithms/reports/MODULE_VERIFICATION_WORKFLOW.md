@@ -87,13 +87,13 @@ Supported case fields:
 
 | Field                | Required | Description                                                   |
 | -------------------- | -------- | ------------------------------------------------------------- |
-| `name`               | yes      | case identifier shown in output                               |
-| `kind`               | yes      | `compile` or `run`                                            |
-| `source`             | yes      | repo-relative path to the `.cpp` probe                        |
-| `stdin`              | no       | input fed to the process on `run` cases                       |
-| `expected_stdout`    | no       | exact stdout expected; failure if mismatched                  |
-| `expected_exit_code` | no       | defaults to `0`                                               |
-| `timeout_seconds`    | no       | kills the process if exceeded (requires `timeout`/`gtimeout`) |
+| `name`               | Yes      | Case identifier shown in output                               |
+| `kind`               | Yes      | `compile` or `run`                                            |
+| `source`             | Yes      | Repo-relative path to the `.cpp` probe                        |
+| `stdin`              | No       | Input fed to the process on `run` cases                       |
+| `expected_stdout`    | No       | Exact stdout expected; failure if mismatched                  |
+| `expected_exit_code` | No       | Defaults to `0`                                               |
+| `timeout_seconds`    | No       | Kills the process if exceeded (requires `timeout`/`gtimeout`) |
 
 Safety rules:
 

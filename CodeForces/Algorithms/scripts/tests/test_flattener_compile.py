@@ -2,10 +2,9 @@
 
 These guard the class of bug where a profile flattens *and prints* fine yet
 the resulting submission does not compile (or silently drops a feature)
-because a profile-resolved switch was never emitted into the output. The
-``fast_extended`` profile is the canonical victim: its ModInt / StrongType
-fast-I/O extensions are gated by ``#if CP_FAST_IO_ENABLE_*`` guards that
-default off unless the resolved value is restated in the submission.
+because a profile-resolved switch was never emitted into the output. Value
+macros used by ordinary expressions (not only ``#if``), such as floating
+precision, are especially easy to lose during pruning.
 
 Unit-level macro/text assertions cannot catch this — only a real compile of
 the flattened output can. The tests are skipped when no GCC-class compiler
@@ -27,7 +26,7 @@ if TYPE_CHECKING:
 
     from .conftest import FlattenResult
 
-_COMPILER_CANDIDATES = ("g++-15", "g++-14", "g++-13", "g++")
+_COMPILER_CANDIDATES = ("g++-16", "g++-15", "g++-14", "g++-13", "g++")
 
 
 def _bits_capable_compiler() -> str | None:
@@ -110,9 +109,22 @@ _NDVEC_SOURCE = textwrap.dedent(
     """
 )
 
-# Exercises the de-coupled advanced concept paths: Random (rnd), Hashing
-# (FastHashMap), Containers (binary_search) must still find their concepts in
-# core/IdiomAliases.hpp without reaching into advanced/.
+_MACROS_ONLY_SOURCE = textwrap.dedent(
+    """\
+    #define NEED_MACROS
+    #define NEED_TYPES
+    #define CP_IO_PROFILE_SIMPLE
+    #include "templates/Base.hpp"
+    void solve() {
+      INT(n);
+      VecI32 values(n);
+      FOR(i, n) values[i] = i;
+      OUT(isz(values));
+    }
+    auto main() -> int { solve(); return 0; }
+    """
+)
+
 _ADVANCED_DECOUPLE_SOURCE = textwrap.dedent(
     """\
     #ifndef CP_USE_ADVANCED
@@ -193,7 +205,28 @@ def test_ndvec_submission_compiles(
     assert result.returncode == 0, result.stderr
     assert 'include "templates/' not in result.stdout
     assert 'include "modules/' not in result.stdout
-    assert "make_vec2" in result.stdout  # NEED_NDVEC resolves to Containers.hpp
+    assert "make_vec2" in result.stdout
+
+    compiled = _compile_submission(result.stdout)
+    assert compiled.returncode == 0, compiled.stderr
+
+
+@_needs_compiler
+def test_macros_only_submission_omits_type_traits(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """Macro loop and size helpers must not pull the general type-trait layer."""
+
+    source = write_source("probe.cpp", _MACROS_ONLY_SOURCE)
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert result.returncode == 0, result.stderr
+    assert "Extended Type Traits" not in result.stdout
+    assert "Compiler Pragmas" not in result.stdout
+    assert "#include <cstdio>" not in result.stdout
+    assert "#include <cstdlib>" not in result.stdout
 
     compiled = _compile_submission(result.stdout)
     assert compiled.returncode == 0, compiled.stderr
@@ -208,7 +241,14 @@ def test_advanced_decoupled_modules_submission_compiles(
     """Random/Hashing/Containers must compile in advanced mode via IdiomAliases."""
 
     source = write_source("probe.cpp", _ADVANCED_DECOUPLE_SOURCE)
+    structured = flatten_inproc(source, env={"CP_FLATTENER_MODE": "compact"})
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert structured.returncode == 0, structured.stderr
+    assert "Search Utilities" in structured.stdout
+    assert "Container Utilities" not in structured.stdout
+    assert "Container Algorithms" not in structured.stdout
+    assert "N-Dimensional Vector Utilities" not in structured.stdout
 
     assert result.returncode == 0, result.stderr
     assert 'include "templates/' not in result.stdout

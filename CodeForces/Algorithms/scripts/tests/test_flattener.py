@@ -365,8 +365,8 @@ class FlattenerAuditTests(unittest.TestCase):
         self.assertEqual(values.get("NEED_FAST_IO"), 1)
         self.assertEqual(values.get("NEED_MOD_INT"), 1)
         self.assertEqual(values.get("CP_USE_ADVANCED"), 1)
-        self.assertEqual(values.get("CP_FAST_IO_ENABLE_MODINT"), 1)
-        self.assertEqual(values.get("CP_FAST_IO_ENABLE_STRONG_TYPE"), 1)
+        self.assertNotIn("CP_FAST_IO_ENABLE_MODINT", values)
+        self.assertNotIn("CP_FAST_IO_ENABLE_STRONG_TYPE", values)
 
     def test_extract_macro_values_expands_io_profile_fast_minimal(self) -> None:
         source = textwrap.dedent(
@@ -698,7 +698,7 @@ class FlattenerAuditTests(unittest.TestCase):
             )
             # Every nested section banner must be preceded by exactly one blank line.
             for section in (
-                "/* Core Concept Vocabulary */",
+                "/* Random Utilities */",
                 "/* Integer Mathematical Utilities */",
             ):
                 self.assertIn(f"\n\n{banner}\n{section}", result.stdout)

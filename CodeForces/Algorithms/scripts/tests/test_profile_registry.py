@@ -81,10 +81,14 @@ class ProfileRegistryTests(unittest.TestCase):
         """Feature headers should be available without parsing Base.hpp."""
         registry = profile_registry.load_registry()
         mapping = registry.feature_headers()
-        self.assertEqual(mapping["NEED_IO"][-1], "modules/IO.hpp")
-        self.assertIn("core/ContainerAliases.hpp", mapping["NEED_IO"])
-        self.assertIn("core/Types.hpp", mapping["NEED_CORE"])
-        self.assertIn("modules/IntegerMath.hpp", mapping["NEED_CORE"])
+        self.assertEqual(mapping["NEED_IO"], ["modules/IO.hpp"])
+        self.assertEqual(mapping["NEED_TYPES"], ["core/Types.hpp"])
+        self.assertEqual(mapping["NEED_CORE"], ["DefaultToolkit.hpp"])
+        self.assertEqual(mapping["NEED_DEFAULT_TOOLKIT"], ["DefaultToolkit.hpp"])
+        self.assertEqual(
+            mapping["NEED_CONTAINER_ALGORITHMS"],
+            ["modules/ContainerAlgorithms.hpp"],
+        )
 
     def test_expand_scaffold_unions_io_needs(self) -> None:
         """Expanding 'advanced' scaffold should include fast-I/O, ModInt, and bit-ops needs."""
@@ -93,7 +97,7 @@ class ProfileRegistryTests(unittest.TestCase):
         self.assertIn("NEED_FAST_IO", needs)
         self.assertIn("NEED_MOD_INT", needs)
         self.assertIn("NEED_BIT_OPS", needs)
-        self.assertEqual(defines.get("CP_FAST_IO_ENABLE_MODINT"), 1)
+        self.assertEqual(defines.get("CP_USE_ADVANCED"), 1)
         self.assertEqual(defines.get("CP_USE_GLOBAL_STD_NAMESPACE"), 1)
 
     def test_scaffold_policy_is_loaded_from_registry(self) -> None:
@@ -106,14 +110,15 @@ class ProfileRegistryTests(unittest.TestCase):
         self.assertEqual(dict(profile.defines), {"CP_USE_GLOBAL_STD_NAMESPACE": 1})
 
     def test_config_defaults_apply_strict_overrides(self) -> None:
-        """Strict profile should drop the global std namespace and the core math bundle."""
+        """Strict profile changes policy defaults, not the deterministic feature bundles."""
         registry = profile_registry.load_registry()
         relaxed = registry.config_defaults_as_dict(strict=False)
         strict = registry.config_defaults_as_dict(strict=True)
         self.assertEqual(relaxed["CP_USE_GLOBAL_STD_NAMESPACE"], 1)
         self.assertEqual(strict["CP_USE_GLOBAL_STD_NAMESPACE"], 0)
-        self.assertEqual(relaxed["CP_CORE_ENABLE_MATH"], 1)
-        self.assertEqual(strict["CP_CORE_ENABLE_MATH"], 0)
+        self.assertNotIn("CP_CORE_ENABLE_MATH", relaxed)
+        self.assertNotIn("CP_CORE_ENABLE_MATH", strict)
+        self.assertEqual(relaxed["CP_FAST_IO_MAX_TOKEN_SIZE"], 16 * 1024 * 1024)
 
     def test_composite_io_is_enabled_in_every_profile(self) -> None:
         """Structured Vec/Pair/tuple I/O must survive the strict profile."""
@@ -140,8 +145,7 @@ class ProfileRegistryTests(unittest.TestCase):
         needs, defines = registry.expand_io_profiles(["CP_IO_PROFILE_FAST_EXTENDED"])
 
         self.assertEqual(needs, {"NEED_FAST_IO", "NEED_MOD_INT"})
-        self.assertEqual(defines["CP_FAST_IO_ENABLE_MODINT"], 1)
-        self.assertEqual(defines["CP_FAST_IO_ENABLE_STRONG_TYPE"], 1)
+        self.assertEqual(defines, {"CP_USE_ADVANCED": 1})
 
     def test_rejects_multiple_enabled_io_profiles(self) -> None:
         """The single-profile rule should be enforced by the registry itself."""
@@ -334,6 +338,33 @@ class ProfileRegistryTests(unittest.TestCase):
         finally:
             path.unlink(missing_ok=True)
 
+    def test_rejects_needs_that_reference_unknown_features(self) -> None:
+        """IO and scaffold recipes may only name registered NEED_* features."""
+        path = _write_toml_with(
+            """
+            [io_profile.broken]
+            needs = ["NEED_DOES_NOT_EXIST"]
+            """
+        )
+        try:
+            with self.assertRaisesRegex(ValueError, "unknown feature"):
+                profile_registry.load_registry(str(path))
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_header_validation_rejects_missing_manifest_entries(self) -> None:
+        """The production gate must validate that each declared header exists."""
+        path = _write_toml(_MINIMAL_VALID_TOML)
+        try:
+            registry = profile_registry.load_registry(str(path))
+            with (
+                tempfile.TemporaryDirectory() as temp_dir,
+                self.assertRaisesRegex(ValueError, "header does not exist"),
+            ):
+                profile_registry.validate_header_files(registry, Path(temp_dir))
+        finally:
+            path.unlink(missing_ok=True)
+
     def test_rejects_non_bool_scaffold_flags(self) -> None:
         """Scaffold booleans should reject strings instead of using Python truthiness."""
         path = _write_toml_with(
@@ -389,6 +420,7 @@ class GeneratedArtefactStalenessTests(unittest.TestCase):
                 self.templates_dir / "core" / "Config_defaults.hpp",
                 self.templates_dir / "Base_profiles.hpp",
                 self.templates_dir / "Base_features.hpp",
+                self.templates_dir / "Base_contracts.hpp",
             ],
         )
 

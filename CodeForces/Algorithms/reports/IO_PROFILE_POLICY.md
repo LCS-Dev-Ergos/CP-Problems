@@ -35,11 +35,10 @@ Expands to:
 #define CP_FAST_IO_VARIANT 0
 ```
 
-Pulls in: `modules/Fast_IO.hpp` compiled in variant 0 — full-reload input (a
-single token must fit in the 1 MB buffer) and no extension hooks.
+Pulls in: `modules/Fast_IO.hpp` compiled in variant 0. Tokens are validated and
+bounded by `CP_FAST_IO_MAX_TOKEN_SIZE` (16 MiB by default).
 
-Use when throughput matters but the compile-time checking baggage for ModInt
-and StrongType extensions is not needed.
+Use when throughput matters and modular/strong types are not needed.
 
 ```cpp
 #define CP_IO_PROFILE_FAST_MINIMAL
@@ -55,13 +54,12 @@ Expands to:
 ```cpp
 #define NEED_FAST_IO
 #define NEED_MOD_INT
-#define CP_FAST_IO_ENABLE_MODINT   1
-#define CP_FAST_IO_ENABLE_STRONG_TYPE 1
-#define CP_USE_ADVANCED            1
+#define CP_USE_ADVANCED 1
 ```
 
 Pulls in: `modules/Fast_IO.hpp`, `modules/Mod_Int.hpp`, and the advanced layer
-(`advanced/Cast.hpp`, `advanced/Concepts.hpp`, `advanced/Strong_Type.hpp`).
+(`advanced/Cast.hpp`, `advanced/RangeStreamConcepts.hpp`,
+`advanced/Strong_Type.hpp`).
 
 Use for advanced rounds where both fast I/O and modular arithmetic with strong
 typing are in scope.
@@ -88,39 +86,24 @@ supported and are preferable when you need a non-standard combination:
 #include "templates/Base.hpp"
 ```
 
-Defining both `NEED_IO` and `NEED_FAST_IO` simultaneously is handled
-gracefully: `Base_profiles.hpp` automatically drops `NEED_IO` when the fast
-backend is present.
+In relaxed mode, defining both `NEED_IO` and `NEED_FAST_IO` drops `NEED_IO`.
+With `CP_TEMPLATE_PROFILE_STRICT` or `CP_STRICT_TEMPLATE_NEEDS`, the same
+collision is a compile-time error.
 
-## Fast_IO extension toggles
+## Fast_IO Customization
 
-These can be set independently of any profile:
-
-| Macro                           | Default                            | Requirement                |
-| ------------------------------- | ---------------------------------- | -------------------------- |
-| `CP_FAST_IO_ENABLE_MODINT`      | `1` when `NEED_MOD_INT` is defined | `CP_FAST_IO_VARIANT == 1`  |
-| `CP_FAST_IO_ENABLE_STRONG_TYPE` | `0`                                | requires `CP_USE_ADVANCED` |
-
-`CP_FAST_IO_ENABLE_STRONG_TYPE` is consumed by `Base.hpp`, not by
-`modules/Fast_IO.hpp`: the extension lives in `advanced/` and only the top-level
-header may include that layer.
-
-Set them to `0` before the include to suppress a specific extension even when
-its parent feature is active:
-
-```cpp
-#define CP_IO_PROFILE_FAST_EXTENDED
-#define CP_FAST_IO_ENABLE_STRONG_TYPE 0   // disable strong-type I/O overloads
-#include "templates/Base.hpp"
-```
+`Fast_IO.hpp` uses constrained overloads to recognize types exposing the
+`cp_modint_marker` or `cp_strong_type_marker` protocol. There are no secondary
+extension toggles, extension headers, or include-order dependencies.
 
 ## Relationship to Base.hpp
 
 `Base.hpp` includes `Base_profiles.hpp` first, which expands the active profile
-into its constituent `NEED_*` defines and normalizes backend collisions. It then
-includes `Base_features.hpp`, generated from the `[feature.NEED_*]` manifest in
-`profiles.toml`, to process those defines in the standard conditional-include
-chain.
+into its constituent `NEED_*` defines and normalizes backend collisions. The
+generated `Base_contracts.hpp` validates public switches, then
+`Base_features.hpp` maps each feature to one entry header. Transitive
+dependencies come from the real C++ include graph rather than duplicated TOML
+closure lists.
 
 Do not define `NEED_*` macros and a profile macro simultaneously unless you
 intend the union of both effects.
