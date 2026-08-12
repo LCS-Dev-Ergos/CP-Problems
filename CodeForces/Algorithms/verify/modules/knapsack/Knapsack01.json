@@ -1,0 +1,19 @@
+{
+  "name": "Knapsack01",
+  "header": "modules/knapsack/Knapsack01.hpp",
+  "category": "knapsack",
+  "tags": ["knapsack", "dp", "meet-in-the-middle", "adaptive"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/knapsack/Knapsack01.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/knapsack/Knapsack01.compile.cpp"
+    }
+  ]
+}

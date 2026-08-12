@@ -84,6 +84,9 @@
         "monoid_sparse_table",
         "heap",
         "treap",
+        "k_smallest_sum",
+        "meldable_heap",
+        "offline_dynamic_queries",
         "parallel_binary_search",
         "point_add_rectangle_sum",
         "rectangle_add_point_sum",
@@ -128,7 +131,8 @@
         "convex_hull",
         "line_intersection",
         "polygon_area",
-        "closest_pair"
+        "closest_pair",
+        "rectangle_union_area"
       ],
       "size_kb": 14.7,
       "compile_time_impact": "medium"
@@ -193,7 +197,39 @@
       ],
       "size_kb": 25.5,
       "compile_time_impact": "low"
+    },
+    "sequences": {
+      "files": [
+        "Sequences.hpp"
+      ],
+      "dependencies": [
+        "core"
+      ],
+      "description": "Sequence algorithms and representations",
+      "features": [
+        "longest_increasing_subsequence",
+        "cartesian_tree"
+      ],
+      "size_kb": 4.2,
+      "compile_time_impact": "low"
+    },
+    "knapsack": {
+      "files": [
+        "Knapsack.hpp"
+      ],
+      "dependencies": [
+        "core"
+      ],
+      "description": "Knapsack algorithms and adaptive solvers",
+      "features": [
+        "knapsack_01",
+        "knapsack_01_weight_dp",
+        "knapsack_01_value_dp",
+        "knapsack_01_meet_in_middle"
+      ],
+      "size_kb": 5.4,
+      "compile_time_impact": "low"
     }
   },
-  "updated": "2026-08-09T18:00:00"
+  "updated": "2026-08-12T18:00:00"
 }

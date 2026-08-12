@@ -1,0 +1,23 @@
+{
+  "name": "SlidingWindowAggregation",
+  "header": "modules/data_structures/sequence/SlidingWindowAggregation.hpp",
+  "category": "data_structures",
+  "tags": [
+    "queue",
+    "monoid",
+    "maspy-import"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/sequence/SlidingWindowAggregation.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/sequence/SlidingWindowAggregation.compile.cpp"
+    }
+  ]
+}

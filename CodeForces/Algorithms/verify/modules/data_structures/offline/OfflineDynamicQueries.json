@@ -1,0 +1,19 @@
+{
+  "name": "OfflineDynamicQueries",
+  "header": "modules/data_structures/offline/OfflineDynamicQueries.hpp",
+  "category": "data_structures",
+  "tags": ["offline", "rollback", "dynamic-connectivity", "segment-tree-on-time"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/offline/OfflineDynamicQueries.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/offline/OfflineDynamicQueries.compile.cpp"
+    }
+  ]
+}

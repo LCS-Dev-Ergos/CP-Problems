@@ -13,7 +13,7 @@
 
 #include "templates/Base.hpp"
 #include "modules/data_structures/segment_tree/SegmentTree.hpp"
-#include "modules/data_structures/line_structures/RangeLineHull.hpp"
+#include "modules/data_structures/line/RangeLineHull.hpp"
 
 //===----------------------------------------------------------------------===//
 /* Solver Helpers */

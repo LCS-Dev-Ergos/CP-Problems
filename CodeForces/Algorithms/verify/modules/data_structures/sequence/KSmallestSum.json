@@ -1,0 +1,19 @@
+{
+  "name": "KSmallestSum",
+  "header": "modules/data_structures/sequence/KSmallestSum.hpp",
+  "category": "data_structures",
+  "tags": ["order-statistics", "multiset", "k-smallest", "dynamic-sum"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/sequence/KSmallestSum.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/sequence/KSmallestSum.compile.cpp"
+    }
+  ]
+}

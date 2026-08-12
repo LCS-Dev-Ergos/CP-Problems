@@ -1,0 +1,19 @@
+{
+  "name": "CartesianTree",
+  "header": "modules/sequences/CartesianTree.hpp",
+  "category": "sequences",
+  "tags": ["cartesian-tree", "sequence", "monotonic-stack", "range"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/sequences/CartesianTree.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/sequences/CartesianTree.compile.cpp"
+    }
+  ]
+}

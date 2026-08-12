@@ -1,0 +1,24 @@
+{
+  "name": "BinaryTrie",
+  "header": "modules/data_structures/bit/BinaryTrie.hpp",
+  "category": "data_structures",
+  "tags": [
+    "bitwise",
+    "trie",
+    "xor",
+    "order-statistics"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/bit/BinaryTrie.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/bit/BinaryTrie.compile.cpp"
+    }
+  ]
+}

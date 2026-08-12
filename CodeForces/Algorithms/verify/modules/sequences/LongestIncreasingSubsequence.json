@@ -1,0 +1,19 @@
+{
+  "name": "LongestIncreasingSubsequence",
+  "header": "modules/sequences/LongestIncreasingSubsequence.hpp",
+  "category": "sequences",
+  "tags": ["lis", "sequence", "reconstruction", "binary-search"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/sequences/LongestIncreasingSubsequence.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/sequences/LongestIncreasingSubsequence.compile.cpp"
+    }
+  ]
+}

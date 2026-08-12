@@ -45,11 +45,16 @@ Verification cases live under `verify/modules/`, grouped by category:
 ```text
 verify/modules/
   data_structures/
+    bit/
     fenwick/
+    line/
+    offline/
     segment_tree/
     range_query/
+    sequence/
+    tree/
     union_find/
-    sequence_structures/
+    utility/
   graph/
   strings/
 ```

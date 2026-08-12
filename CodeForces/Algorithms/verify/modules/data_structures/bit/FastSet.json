@@ -1,0 +1,24 @@
+{
+  "name": "FastSet",
+  "header": "modules/data_structures/bit/FastSet.hpp",
+  "category": "data_structures",
+  "tags": [
+    "ordered-set",
+    "bitwise",
+    "successor",
+    "predecessor"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/bit/FastSet.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/bit/FastSet.compile.cpp"
+    }
+  ]
+}

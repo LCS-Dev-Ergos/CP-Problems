@@ -10,6 +10,7 @@
 #include "geometry/PointInConvexPolygon.hpp"
 #include "geometry/Line2D.hpp"
 #include "geometry/Polygon.hpp"
+#include "geometry/RectangleUnionArea.hpp"
 #include "geometry/Circle.hpp"
 #include "geometry/Point3D.hpp"
 #include "geometry/Plane3D.hpp"

@@ -1,0 +1,23 @@
+{
+  "name": "WaveletMatrix",
+  "header": "modules/data_structures/bit/WaveletMatrix.hpp",
+  "category": "data_structures",
+  "tags": [
+    "wavelet",
+    "range-query",
+    "order-statistics"
+  ],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/bit/WaveletMatrix.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/bit/WaveletMatrix.compile.cpp"
+    }
+  ]
+}

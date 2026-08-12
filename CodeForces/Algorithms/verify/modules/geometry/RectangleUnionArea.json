@@ -1,0 +1,19 @@
+{
+  "name": "RectangleUnionArea",
+  "header": "modules/geometry/RectangleUnionArea.hpp",
+  "category": "geometry",
+  "tags": ["rectangle", "union-area", "sweep-line", "segment-tree"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/geometry/RectangleUnionArea.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/geometry/RectangleUnionArea.compile.cpp"
+    }
+  ]
+}

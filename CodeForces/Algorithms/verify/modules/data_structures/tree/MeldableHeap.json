@@ -1,0 +1,19 @@
+{
+  "name": "MeldableHeap",
+  "header": "modules/data_structures/tree/MeldableHeap.hpp",
+  "category": "data_structures",
+  "tags": ["heap", "leftist-tree", "meld", "priority-queue"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/data_structures/tree/MeldableHeap.runtime.cpp",
+      "timeout_seconds": 20.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/data_structures/tree/MeldableHeap.compile.cpp"
+    }
+  ]
+}
