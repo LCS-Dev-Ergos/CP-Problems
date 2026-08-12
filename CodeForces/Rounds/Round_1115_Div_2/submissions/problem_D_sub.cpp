@@ -1,11 +1,11 @@
 //===----------------------------------------------------------------------===//
 /**
- * @file: problem_C_sub.cpp
- * @generated: 2026-08-12 16:45:08
- * @source: problem_C.cpp
+ * @file: problem_D_sub.cpp
+ * @generated: 2026-08-12 16:44:52
+ * @source: problem_D.cpp
  * @author: C.L.
  *
- * @brief: Codeforces Round 1115 (Div. 2) - Problem C
+ * @brief: Codeforces Round 1115 (Div. 2) - Problem D
  */
 //===----------------------------------------------------------------------===//
 /* Included library and Compiler Optimizations */
@@ -572,38 +572,25 @@ inline void No(bool condition = true) { Yes(!condition); }
 using namespace std;
 
 void solve() {
-  INT(n, m);
-  VecI64 v(n);
-  VecI32 a(n * m);
-  IN(v, a);
+  INT(n);
+  VecI64 a(n), d(n - 1);
+  IN(a);
 
-  MultiSet<I32> top;
-  I32 ans = m;
+  FOR(i, n - 1)
+  d[i] = a[i + 1] - a[i];
 
-  FOR_R(i, n) {
-    FOR(j, m) {
-      I32 x = a[i * m + j];
-      if (isz(top) < m) {
-        top.insert(x);
-      } else if (x > *top.begin()) {
-        top.erase(top.begin());
-        top.insert(x);
-      }
-    }
-
-    I64 sum = 0;
-    I32 cnt = 0;
-    for (auto it = top.rbegin(); it != top.rend() && cnt < ans; ++it) {
-      sum += *it;
-      ++cnt;
-      if (sum >= v[i]) {
-        ans = cnt;
-        break;
-      }
-    }
+  auto even = [](I64 x) { return x % 2 == 0; };
+  for (I32 l = 0; l < n - 1;) {
+    I32 r = l + 1;
+    while (r < n - 1 && even(d[r]) == even(d[l]))
+      ++r;
+    sort(d.begin() + l, d.begin() + r);
+    l = r;
   }
 
-  OUT(ans);
+  FOR(i, 1, n)
+  a[i] = a[i - 1] + d[i - 1];
+  OUT(a);
 }
 
 //===----------------------------------------------------------------------===//
