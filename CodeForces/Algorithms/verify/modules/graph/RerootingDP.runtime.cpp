@@ -1,4 +1,5 @@
 #include "modules/graph/tree/RerootingDP.hpp"
+#include "templates/core/Constants.hpp"
 
 #include <cassert>
 #include <random>

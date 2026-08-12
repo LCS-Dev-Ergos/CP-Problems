@@ -2,6 +2,8 @@
 #define CP_MODULES_GRAPH_FLOYD_WARSHALL_HPP
 
 #include "_Common.hpp"
+#include "templates/core/Constants.hpp"
+#include "templates/core/MinMax.hpp"
 
 /**
  * @brief Floyd-Warshall all-pairs shortest paths.

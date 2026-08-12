@@ -3,6 +3,8 @@
 
 #include "Graph.hpp"
 #include "_Common.hpp"
+#include "detail/Weight.hpp"
+#include "templates/core/Constants.hpp"
 
 #include <cassert>
 
@@ -20,7 +22,7 @@ struct DijkstraResult {
 
 template <typename Weight = I64>
 DijkstraResult<Weight> dijkstra_sparse(const Graph<Weight>& g, I32 source) {
-  DijkstraResult<Weight> res{Vec<Weight>(g.n, infinity<Weight>), VI(g.n, -1)};
+  DijkstraResult<Weight> res{Vec<Weight>(g.n, infinity<Weight>), VecI32(g.n, -1)};
   if (source < 0 || source >= g.n)
     return res;
 
@@ -43,8 +45,8 @@ DijkstraResult<Weight> dijkstra_sparse(const Graph<Weight>& g, I32 source) {
         continue;
       }
 
-      Weight nd = d + e.weight;
-      if (nd < res.dist[e.to]) {
+      Weight nd{};
+      if (cp::graph_detail::checked_add(d, e.weight, nd) && nd < res.dist[e.to]) {
         res.dist[e.to]   = nd;
         res.parent[e.to] = v;
         pq.push({nd, e.to});

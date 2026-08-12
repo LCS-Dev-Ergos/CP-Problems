@@ -2,7 +2,7 @@
 #define CP_MODULES_GRAPH_ZERO_ONE_BFS_HPP
 
 #include "Graph.hpp"
-#include "_Common.hpp"
+#include "templates/core/Constants.hpp"
 
 #include <cassert>
 

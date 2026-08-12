@@ -10,6 +10,7 @@
       "description": "Graph algorithms and data structures",
       "features": [
         "bfs",
+        "dfs",
         "dijkstra",
         "bellman_ford",
         "dinic",

@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_TREE_TREE_DIAMETER_HPP
 
 #include "../Graph.hpp"
+#include "../_Common.hpp"
 
 /// @brief Diameter endpoints, distance, and vertex path in one tree component.
 template <typename Weight = I64>

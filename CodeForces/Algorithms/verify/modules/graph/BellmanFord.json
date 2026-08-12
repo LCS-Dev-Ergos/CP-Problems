@@ -1,0 +1,19 @@
+{
+  "name": "BellmanFord",
+  "header": "modules/graph/BellmanFord.hpp",
+  "category": "graph",
+  "tags": ["bellman-ford", "shortest-path", "negative-cycle"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/BellmanFord.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/BellmanFord.compile.cpp"
+    }
+  ]
+}

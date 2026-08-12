@@ -1,0 +1,19 @@
+{
+  "name": "BFS",
+  "header": "modules/graph/BFS.hpp",
+  "category": "graph",
+  "tags": ["bfs", "shortest-path"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/BFS.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/BFS.compile.cpp"
+    }
+  ]
+}

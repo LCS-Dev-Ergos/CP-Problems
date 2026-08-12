@@ -1,0 +1,19 @@
+{
+  "name": "DFS",
+  "header": "modules/graph/DFS.hpp",
+  "category": "graph",
+  "tags": ["dfs", "traversal"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/DFS.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/DFS.compile.cpp"
+    }
+  ]
+}

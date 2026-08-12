@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_TREE_TREE_CORE_HPP
 
 #include "../Graph.hpp"
+#include "../_Common.hpp"
 
 /**
  * @brief Iterative tree/forest view with Euler order and HLD path segments.

@@ -1,4 +1,6 @@
 #include "modules/graph/RangeToRangeGraph.hpp"
+#include "modules/graph/DijkstraSparse.hpp"
+#include "templates/core/MinMax.hpp"
 
 #include <cassert>
 #include <random>
@@ -79,7 +81,7 @@ int main() {
     assert(g.n == expected_nodes);
 
     const I32 src = I32(rng() % U32(n));
-    const VecI64 got = g.dijkstra(src);
+    const VecI64 got = dijkstra_sparse(g, src).dist;
     const VecI64 want = dense_dijkstra(dense, src);
     FOR(v, n) assert(got[v] == want[v]);
   }
@@ -90,7 +92,7 @@ int main() {
     const I32 n = 16;
     RangeToRangeGraph<I64> builder(n);
     const Graph<I64> g = builder.build();
-    const VecI64 dist = g.dijkstra(0);
+    const VecI64 dist = dijkstra_sparse(g, 0).dist;
     assert(dist[0] == 0);
     FOR(v, 1, n) assert(dist[v] >= infinity<I64>);
   }
@@ -100,7 +102,7 @@ int main() {
     RangeToRangeGraph<I64> one(1);
     one.add_to_range(0, 0, 1, 5);
     const Graph<I64> g = one.build();
-    const VecI64 dist = g.dijkstra(0);
+    const VecI64 dist = dijkstra_sparse(g, 0).dist;
     assert(dist[0] == 0);
 
     RangeToRangeGraph<I64> empty(0);
@@ -119,7 +121,7 @@ int main() {
       if (i + 1 < r) builder.add_to_range(i, i + 1, r, 1);
     }
     const Graph<I64> g = builder.build();
-    const VecI64 dist = g.dijkstra(0);
+    const VecI64 dist = dijkstra_sparse(g, 0).dist;
     FOR(v, n) assert(dist[v] == I64((v + k - 2) / (k - 1)));
   }
 
@@ -136,7 +138,7 @@ int main() {
     }
     assert(builder.size() == 3 * n + (layers - 1));
     const Graph<I64> g = builder.build();
-    const VecI64 dist = g.dijkstra(0);
+    const VecI64 dist = dijkstra_sparse(g, 0).dist;
     assert(dist[0] == 0);
     FOR(v, 1, block) assert(dist[v] >= infinity<I64>);
     FOR(v, block, n) assert(dist[v] == I64(v / block));

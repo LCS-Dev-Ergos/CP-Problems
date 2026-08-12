@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_MCMF_HPP
 
 #include "_Common.hpp"
+#include "templates/core/Constants.hpp"
 
 /**
  * @brief Min-Cost Max-Flow via Successive Shortest Paths with SPFA.

@@ -7,6 +7,10 @@
  */
 
 #include "graph/Graph.hpp"
+#include "graph/BFS.hpp"
+#include "graph/DFS.hpp"
+#include "graph/BellmanFord.hpp"
+#include "graph/TopologicalSort.hpp"
 #include "graph/Dinic.hpp"
 #include "graph/MinCostMaxFlow.hpp"
 #include "graph/BipartiteMatching.hpp"

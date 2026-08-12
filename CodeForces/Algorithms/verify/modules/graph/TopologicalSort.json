@@ -1,0 +1,19 @@
+{
+  "name": "TopologicalSort",
+  "header": "modules/graph/TopologicalSort.hpp",
+  "category": "graph",
+  "tags": ["dag", "topological-sort"],
+  "cases": [
+    {
+      "name": "runtime",
+      "kind": "run",
+      "source": "verify/modules/graph/TopologicalSort.runtime.cpp",
+      "timeout_seconds": 15.0
+    },
+    {
+      "name": "compile",
+      "kind": "compile",
+      "source": "verify/modules/graph/TopologicalSort.compile.cpp"
+    }
+  ]
+}

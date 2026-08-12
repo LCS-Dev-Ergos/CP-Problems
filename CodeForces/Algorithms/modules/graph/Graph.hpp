@@ -1,17 +1,11 @@
 #ifndef CP_MODULES_GRAPH_CORE_HPP
 #define CP_MODULES_GRAPH_CORE_HPP
 
-#include "_Common.hpp"
+#include "templates/core/Types.hpp"
 
-/**
- * @brief Adjacency-list graph with common traversal and connectivity routines.
- *
- * @details Supports directed or undirected graphs. In undirected mode each edge is
- * stored in both directions in @c adj and in @c edges for consistency.
- */
+/// @brief Directed or undirected adjacency-list graph.
 template <typename Weight = I64>
 struct Graph {
-  /// @brief Edge record stored in adjacency lists and in the global edge list.
   struct Edge {
     I32 from;
     I32 to;
@@ -23,280 +17,22 @@ struct Graph {
     bool operator<(const Edge& other) const { return weight < other.weight; }
   };
 
-  I32 n, m;
+  I32 n;
+  I32 m = 0;
   Vec2D<Edge> adj;
   Vec<Edge> edges;
   bool directed;
 
-  Graph(I32 n, bool directed = false) : n(n), m(0), adj(n), directed(directed) {}
+  Graph(I32 n_, bool directed_ = false) : n(n_), adj(n_), directed(directed_) {}
 
-  static bool checked_add(Weight lhs, Weight rhs, Weight& out) {
-    if constexpr (std::is_integral_v<Weight>) {
-      if constexpr (std::is_signed_v<Weight>) {
-        if (rhs > 0 && lhs > Limits<Weight>::max() - rhs)
-          return false;
-        if (rhs < 0 && lhs < Limits<Weight>::lowest() - rhs)
-          return false;
-      } else {
-        if (lhs > Limits<Weight>::max() - rhs)
-          return false;
-      }
-    }
-    out = lhs + rhs;
-    return true;
-  }
-
-  /// @brief Adds an edge from 'from' to 'to' with given weight (default 1).
   void add_edge(I32 from, I32 to, Weight weight = 1) {
-    adj[from].eb(from, to, weight, m);
-    edges.eb(from, to, weight, m);
+    adj[from].emplace_back(from, to, weight, m);
+    edges.emplace_back(from, to, weight, m);
     if (!directed) {
-      adj[to].eb(to, from, weight, m);
-      edges.eb(to, from, weight, m);
+      adj[to].emplace_back(to, from, weight, m);
+      edges.emplace_back(to, from, weight, m);
     }
-    m++;
-  }
-
-  /// @brief Unweighted shortest-path distances from a source via BFS.
-  VecI32 bfs(I32 source) const {
-    VecI32     dist(n, -1);
-    Queue<I32> q;
-    dist[source] = 0;
-    q.push(source);
-
-    while (!q.empty()) {
-      I32 u = q.front();
-      q.pop();
-      for (const auto& e : adj[u]) {
-        if (dist[e.to] != -1)
-          continue;
-        dist[e.to] = dist[u] + 1;
-        q.push(e.to);
-      }
-    }
-
-    return dist;
-  }
-
-  /// @brief Dijkstra shortest paths for non-negative edge weights.
-  Vec<Weight> dijkstra(I32 source) const {
-    Vec<Weight>                         dist(n, infinity<Weight>);
-    MinPriorityQueue<Pair<Weight, I32>> pq;
-
-    dist[source] = 0;
-    pq.push({0, source});
-
-    while (!pq.empty()) {
-      auto [d, u] = pq.top();
-      pq.pop();
-
-      if (d > dist[u])
-        continue;
-
-      for (const auto& e : adj[u]) {
-        Weight new_dist{};
-        if (!checked_add(dist[u], e.weight, new_dist))
-          continue;
-        if (new_dist < dist[e.to]) {
-          dist[e.to] = new_dist;
-          pq.push({new_dist, e.to});
-        }
-      }
-    }
-
-    return dist;
-  }
-
-  /// @brief Bellman-Ford shortest paths with negative-cycle detection.
-  Pair<bool, Vec<Weight>> bellman_ford(I32 source) const {
-    Vec<Weight> dist(n, infinity<Weight>);
-    dist[source] = 0;
-
-    // Relax edges n-1 times.
-    FOR(i, n - 1) {
-      bool updated = false;
-      FOR(u, n) {
-        if (dist[u] == infinity<Weight>)
-          continue;
-        for (const auto& e : adj[u]) {
-          Weight new_dist{};
-          if (checked_add(dist[u], e.weight, new_dist) && new_dist < dist[e.to]) {
-            dist[e.to] = new_dist;
-            updated    = true;
-          }
-        }
-      }
-      if (!updated)
-        break;
-    }
-
-    // Check for negative cycle.
-    FOR(u, n) {
-      if (dist[u] == infinity<Weight>)
-        continue;
-      for (const auto& e : adj[u]) {
-        Weight new_dist{};
-        if (checked_add(dist[u], e.weight, new_dist) && new_dist < dist[e.to]) {
-          return {true, dist}; // Negative cycle exists
-        }
-      }
-    }
-
-    return {false, dist};
-  }
-
-  /// @brief Topological sort of a DAG. Optionally reports whether a cycle was seen.
-  VecI32 topological_sort(bool* has_cycle = nullptr) const {
-    VecI32 result;
-    VecI32 color(n, 0);
-    bool   cycle = false;
-
-    Function<void(I32)> dfs = [&](I32 u) {
-      color[u] = 1;
-      for (const auto& e : adj[u]) {
-        if (color[e.to] == 0)
-          dfs(e.to);
-        else if (color[e.to] == 1)
-          cycle = true;
-      }
-      color[u] = 2;
-      result.push_back(u);
-    };
-
-    FOR(i, n) {
-      if (color[i] == 0)
-        dfs(i);
-    }
-
-    std::reverse(all(result));
-    if (has_cycle != nullptr)
-      *has_cycle = cycle;
-    return result;
-  }
-
-  /// @brief Strongly connected components via Kosaraju algorithm.
-  VecI32 find_scc() const {
-    VecI32    order;
-    Vec<bool> visited(n, false);
-
-    // First DFS to find finish times.
-    Function<void(I32)> dfs1 = [&](I32 u) {
-      visited[u] = true;
-      for (const auto& e : adj[u]) {
-        if (!visited[e.to])
-          dfs1(e.to);
-      }
-      order.push_back(u);
-    };
-
-    FOR(i, n) {
-      if (!visited[i])
-        dfs1(i);
-    }
-
-    // Build reverse graph.
-    Vec2D<I32> rev_adj(n);
-    FOR(u, n) {
-      for (const auto& e : adj[u]) {
-        rev_adj[e.to].push_back(u);
-      }
-    }
-
-    // Second DFS on reverse graph.
-    VecI32 component(n, -1);
-    I32 comp_count = 0;
-
-    Function<void(I32, I32)> dfs2 = [&](I32 u, I32 comp) {
-      component[u] = comp;
-      for (I32 v : rev_adj[u]) {
-        if (component[v] == -1)
-          dfs2(v, comp);
-      }
-    };
-
-    std::reverse(all(order));
-    for (I32 u : order) {
-      if (component[u] == -1) {
-        dfs2(u, comp_count++);
-      }
-    }
-
-    return component;
-  }
-
-  ///@brief Finds all bridges (cut edges) in an undirected graph.
-  Vec<PairI32> find_bridges() const {
-    Vec<PairI32> bridges;
-    VecI32 disc(n, -1), low(n, -1);
-    I32 timer = 0;
-
-    Function<void(I32, I32)> dfs = [&](I32 u, I32 parent_edge) {
-      disc[u] = low[u] = timer++;
-
-      for (const auto& e : adj[u]) {
-        I32 v = e.to;
-        if (disc[v] == -1) {
-          dfs(v, e.id);
-          low[u] = std::min(low[u], low[v]);
-
-          if (low[v] > disc[u]) {
-            bridges.push_back({std::min(u, v), std::max(u, v)});
-          }
-        } else if (e.id != parent_edge) {
-          low[u] = std::min(low[u], disc[v]);
-        }
-      }
-    };
-
-    FOR(i, n) {
-      if (disc[i] == -1)
-        dfs(i, -1);
-    }
-
-    return bridges;
-  }
-
-  /// @brief Finds articulation points (cut vertices) in an undirected graph.
-  VecI32 find_articulation_points() const {
-    VecI32 disc(n, -1), low(n, -1);
-    Vec<bool> is_articulation(n, false);
-    I32 timer = 0;
-
-    Function<void(I32, I32)> dfs = [&](I32 u, I32 parent_edge) {
-      disc[u] = low[u] = timer++;
-      I32 child_count  = 0;
-
-      for (const auto& e : adj[u]) {
-        I32 v = e.to;
-        if (disc[v] == -1) {
-          child_count++;
-          dfs(v, e.id);
-          low[u] = std::min(low[u], low[v]);
-
-          if (parent_edge != -1 && low[v] >= disc[u]) {
-            is_articulation[u] = true;
-          }
-        } else if (e.id != parent_edge) {
-          low[u] = std::min(low[u], disc[v]);
-        }
-      }
-
-      if (parent_edge == -1 && child_count > 1) {
-        is_articulation[u] = true;
-      }
-    };
-
-    FOR(i, n) {
-      if (disc[i] == -1)
-        dfs(i, -1);
-    }
-
-    VecI32 result;
-    FOR(i, n) {
-      if (is_articulation[i])
-        result.push_back(i);
-    }
-    return result;
+    ++m;
   }
 };
 

@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_RANGE_TO_RANGE_GRAPH_HPP
 
 #include "Graph.hpp"
+#include "_Common.hpp"
 
 /**
  * @brief Graph on [0, n) with edges that touch whole index ranges at once.
@@ -26,7 +27,7 @@
  * builder.add_to_range(u, l, r, w);      // u -> every v in [l, r)
  * builder.add_from_range(l, r, v, w);    // every u in [l, r) -> v
  * Graph<I64> g = builder.build();
- * const Vec<I64> dist = g.dijkstra(source);
+ * const Vec<I64> dist = dijkstra_sparse(g, source).dist;
  * @endcode
  */
 template <typename Weight = I64>

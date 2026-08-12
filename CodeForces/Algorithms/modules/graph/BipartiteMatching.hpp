@@ -2,6 +2,7 @@
 #define CP_MODULES_GRAPH_BIPARTITE_MATCHING_HPP
 
 #include "_Common.hpp"
+#include "templates/core/Constants.hpp"
 
 /**
  * @brief Hopcroft-Karp maximum bipartite matching.
