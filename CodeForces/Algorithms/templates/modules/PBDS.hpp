@@ -39,20 +39,23 @@ class OrderedMultiSet {
 
 public:
   class ConstIterator {
-    typename Tree::const_iterator it_;
     friend class OrderedMultiSet;
+    typename Tree::const_iterator it_;
     explicit ConstIterator(typename Tree::const_iterator it) : it_(it) {}
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
+
+    using value_type      = T;
     using difference_type = std::ptrdiff_t;
-    using pointer = const T*;
-    using reference = const T&;
+    using pointer         = const T*;
+    using reference       = const T&;
 
     ConstIterator() = default;
-    reference operator*() const { return it_->first; }
-    pointer operator->() const { return std::addressof(it_->first); }
+
+    pointer   operator->() const { return std::addressof(it_->first); }
+    reference operator*()  const { return it_->first; }
+
     ConstIterator& operator++() {
       ++it_;
       return *this;
@@ -74,7 +77,7 @@ public:
     friend bool operator==(const ConstIterator&, const ConstIterator&) = default;
   };
 
-  using iterator = ConstIterator;
+  using iterator       = ConstIterator;
   using const_iterator = ConstIterator;
 
   [[nodiscard]] bool empty() const { return data_.empty(); }

@@ -98,6 +98,7 @@ template <class R>
   #define sz(x) cp::sz64(x)
   #define isz(x) cp::sz32(x)
   #define len(x) sz(x)
+  #define pb push_back
   #define eb emplace_back
   #define elif else if
 #endif

@@ -67,6 +67,7 @@ inline void load_input() {
   std::memmove(input_buffer, input_buffer + input_pos, remaining);
   const U32 capacity   = BUFFER_SIZE - remaining;
   const U32 bytes_read = as<U32>(std::fread(input_buffer + remaining, 1, capacity, stdin));
+
   input_end = remaining + bytes_read;
   input_pos = 0;
   if (bytes_read < capacity) {
@@ -120,6 +121,7 @@ template <class U>
 
     block = (block * 10 + (block >> 8)) & 0x00ff'00ff'00ff'00ffULL;
     block = (block * 100 + (block >> 16)) & 0x0000'ffff'0000'ffffULL;
+
     const U digits = as<U>((block * 10'000 + (block >> 32)) & 0xffff'ffffULL);
     CP_EXPECT(value <= (limit - digits) / U(100'000'000),
               "Fast I/O: integer token out of range.");
