@@ -3,8 +3,7 @@
 #include "templates/core/CoreConcepts.hpp"
 #include "templates/core/TypeTraits.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Integer Mathematical Utilities */
+//=====----- [ Int Math ] -----------------------------------------------=====//
 
 namespace cp::detail {
 

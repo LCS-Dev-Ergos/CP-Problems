@@ -1,7 +1,6 @@
 #pragma once
 
-//===----------------------------------------------------------------------===//
-/* Container Utilities */
+//=====----- [ Containers ] ---------------------------------------------=====//
 
 #include "templates/modules/ContainerAlgorithms.hpp"
 #include "templates/modules/NdVec.hpp"

@@ -27,14 +27,24 @@ from flattener_core.includes import (
     parse_project_include_line,
     resolve_project_include,
 )
-from flattener_core.lexer import append_with_blank_separator
+from flattener_core.lexer import append_with_blank_separator, mask_code_literals_preserving_lines
 from flattener_core.macros import MacroValueMap
 from flattener_pipeline.context import FlattenContext, FlattenedTemplateBundle
 from need_resolver import extract_need_macros_from_source
 from profile_registry import load_registry
 
 NEED_DEFINE_LINE_RE = re.compile(r"^\s*#\s*define\s+(NEED_\w+)\b")
-MAIN_SOLVER_SECTION_MARKER = "/* Main Solver Function */"
+MAIN_SOLVER_SECTION_MARKER = (
+    "//=====----- [ Solve ] --------------------------------------------------=====//"
+)
+MAIN_FUNCTION_SECTION_MARKER = (
+    "//=====----- [ Main ] ---------------------------------------------------=====//"
+)
+LEGACY_SECTION_SEPARATOR = (
+    "//===----------------------------------------------------------------------===//"
+)
+LEGACY_MAIN_SOLVER_SECTION_MARKER = "/* Main Solver Function */"
+LEGACY_MAIN_FUNCTION_SECTION_MARKER = "/* Main Function */"
 
 _IDENT_RE = re.compile(r"[A-Za-z_]\w*")
 SURVIVING_PROJECT_INCLUDE_RE = re.compile(r'^\s*#\s*include\s+"(?:templates|modules)/')
@@ -235,28 +245,83 @@ def _render_flattened_source(
     skip_need_defines = False
     seen_base_include = False
     skip_blank_after_sections = False
-    should_emit_std_namespace = (
-        bundle.effective_macro_values.get("CP_USE_GLOBAL_STD_NAMESPACE") not in (None, 0)
-        and "using namespace std;" not in ctx.source_content
+    literal_masked_lines = mask_code_literals_preserving_lines(ctx.source_content).splitlines()
+    global_std_namespace_enabled = bundle.effective_macro_values.get(
+        "CP_USE_GLOBAL_STD_NAMESPACE"
+    ) not in (None, 0)
+    existing_std_namespace_using = any(
+        line.strip() == "using namespace std;" for line in ctx.source_masked_lines
+    )
+    has_solver_section_marker = any(
+        line.strip() in (MAIN_SOLVER_SECTION_MARKER, LEGACY_MAIN_SOLVER_SECTION_MARKER)
+        and idx < len(literal_masked_lines)
+        and line.strip() == literal_masked_lines[idx].strip()
+        for idx, line in enumerate(ctx.source_lines)
     )
     defer_std_namespace_to_solver_section = (
-        should_emit_std_namespace and MAIN_SOLVER_SECTION_MARKER in ctx.source_content
+        global_std_namespace_enabled and has_solver_section_marker
+    )
+    should_emit_std_namespace = global_std_namespace_enabled and (
+        defer_std_namespace_to_solver_section or not existing_std_namespace_using
     )
 
     module_section_emitted = False
     inlined_headers = set(bundle.inlined_headers)
+    skip_legacy_section_marker = False
 
     for idx, line in enumerate(ctx.source_lines):
         stripped = line.strip()
+        literal_masked_line = literal_masked_lines[idx] if idx < len(literal_masked_lines) else ""
+        if skip_legacy_section_marker:
+            skip_legacy_section_marker = False
+            continue
         if skip_blank_after_sections:
             if not stripped:
                 continue
             skip_blank_after_sections = False
         masked_line = ctx.source_masked_lines[idx] if idx < len(ctx.source_masked_lines) else ""
+        if defer_std_namespace_to_solver_section and masked_line.strip() == "using namespace std;":
+            continue
         include_name = parse_project_include_line(line, masked_line=masked_line)
         is_base_include = include_name is not None and include_name.replace("\\", "/").endswith(
             "templates/Base.hpp"
         )
+
+        if stripped == LEGACY_SECTION_SEPARATOR and literal_masked_line.strip() == stripped:
+            next_line = ctx.source_lines[idx + 1].strip() if idx + 1 < len(ctx.source_lines) else ""
+            next_literal_masked_line = (
+                literal_masked_lines[idx + 1].strip() if idx + 1 < len(literal_masked_lines) else ""
+            )
+            legacy_banner = {
+                LEGACY_MAIN_SOLVER_SECTION_MARKER: MAIN_SOLVER_SECTION_MARKER,
+                LEGACY_MAIN_FUNCTION_SECTION_MARKER: MAIN_FUNCTION_SECTION_MARKER,
+            }.get(next_line if next_line == next_literal_masked_line else "")
+            if legacy_banner:
+                output_lines.append(f"{legacy_banner}\n")
+                if (
+                    legacy_banner == MAIN_SOLVER_SECTION_MARKER
+                    and defer_std_namespace_to_solver_section
+                ):
+                    output_lines.append("\nusing namespace std;\n")
+                    should_emit_std_namespace = False
+                    defer_std_namespace_to_solver_section = False
+                skip_legacy_section_marker = True
+                continue
+
+        standalone_legacy_banner = {
+            LEGACY_MAIN_SOLVER_SECTION_MARKER: MAIN_SOLVER_SECTION_MARKER,
+            LEGACY_MAIN_FUNCTION_SECTION_MARKER: MAIN_FUNCTION_SECTION_MARKER,
+        }.get(stripped if stripped == literal_masked_line.strip() else "")
+        if standalone_legacy_banner:
+            output_lines.append(f"{standalone_legacy_banner}\n")
+            if (
+                standalone_legacy_banner == MAIN_SOLVER_SECTION_MARKER
+                and defer_std_namespace_to_solver_section
+            ):
+                output_lines.append("\nusing namespace std;\n")
+                should_emit_std_namespace = False
+                defer_std_namespace_to_solver_section = False
+            continue
 
         need_define_match = NEED_DEFINE_LINE_RE.match(stripped)
         if (
@@ -330,7 +395,11 @@ def _render_flattened_source(
                 output_lines.append("\n")
 
         output_lines.append(line)
-        if stripped == MAIN_SOLVER_SECTION_MARKER and defer_std_namespace_to_solver_section:
+        if (
+            stripped == MAIN_SOLVER_SECTION_MARKER
+            and stripped == literal_masked_line.strip()
+            and defer_std_namespace_to_solver_section
+        ):
             output_lines.append("\nusing namespace std;\n")
             should_emit_std_namespace = False
             defer_std_namespace_to_solver_section = False

@@ -4,8 +4,7 @@
 #include "templates/core/Contracts.hpp"
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Advanced Modular Arithmetic */
+//=====----- [ ModInt ] -------------------------------------------------=====//
 
 struct Barrett {
   U32 m;

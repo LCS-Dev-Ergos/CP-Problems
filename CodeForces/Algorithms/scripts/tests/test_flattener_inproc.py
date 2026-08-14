@@ -75,6 +75,198 @@ def test_flattener_expands_base_include_with_trailing_comment(
     assert "<bits/stdc++.h>" in result.stdout
 
 
+def test_submission_keeps_blank_lines_around_section_banners(
+    clean_cp_env: None,
+    algorithms_dir: Path,
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """Submission banners must remain separated from surrounding code."""
+
+    result = flatten_inproc(
+        algorithms_dir / "templates" / "cpp" / "default.cpp",
+        env={"CP_FLATTENER_MODE": "submission"},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "#include <bits/stdc++.h>\n\n//=====----- [ Features ]" in result.stdout
+    assert (
+        "//=====----- [ Features ] -----------------------------------------------=====//\n\n#ifndef HAS_INT128"
+        in result.stdout
+    )
+    assert "#endif\n\n//=====----- [ Assert ]" in result.stdout
+
+
+def test_compact_keeps_blank_lines_around_section_banners(
+    clean_cp_env: None,
+    algorithms_dir: Path,
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """Compact output must keep the same banner separation as submissions."""
+
+    result = flatten_inproc(
+        algorithms_dir / "templates" / "cpp" / "default.cpp",
+        env={"CP_FLATTENER_MODE": "compact"},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "#endif\n\n//=====----- [ Assert ]" in result.stdout
+    assert "#define CP_IO_COMPOSITE_CONTEXT 1\n\n//=====----- [ I/O Composite ]" in result.stdout
+
+
+def test_submission_upgrades_legacy_solver_and_main_banners(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """Legacy scaffolds must receive canonical solver and main banners."""
+
+    source = write_source(
+        "legacy.cpp",
+        textwrap.dedent(
+            """\
+            #define CP_USE_GLOBAL_STD_NAMESPACE 1
+            #define CP_IO_PROFILE_SIMPLE
+            #include "templates/Base.hpp"
+
+            //===----------------------------------------------------------------------===//
+            /* Main Solver Function */
+
+            void solve() {}
+
+            //===----------------------------------------------------------------------===//
+            /* Main Function */
+
+            auto main() -> int { return 0; }
+            """
+        ),
+    )
+
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert result.returncode == 0, result.stderr
+    solve_banner = (
+        "//=====----- [ Solve ] --------------------------------------------------=====//"
+    )
+    main_banner = "//=====----- [ Main ] ---------------------------------------------------=====//"
+    assert solve_banner in result.stdout
+    assert main_banner in result.stdout
+    assert "Main Solver Function" not in result.stdout
+    assert result.stdout.index(solve_banner) < result.stdout.index("using namespace std;")
+    assert result.stdout.index("using namespace std;") < result.stdout.index("void solve()")
+
+
+def test_banner_text_inside_raw_string_is_not_reformatted(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """Banner-shaped raw-string content must remain byte-for-byte unchanged."""
+
+    banner = "//=====----- [ Solve ] --------------------------------------------------=====//"
+    source = write_source(
+        "raw_banner.cpp",
+        textwrap.dedent(
+            f"""\
+            #define CP_USE_GLOBAL_STD_NAMESPACE 0
+            #define CP_IO_PROFILE_SIMPLE
+            #include "templates/Base.hpp"
+            constexpr auto text = R"(
+            {banner}
+            )";
+            auto main() -> int {{ return 0; }}
+            """
+        ),
+    )
+
+    for mode in ("compact", "submission"):
+        result = flatten_inproc(source, env={"CP_FLATTENER_MODE": mode})
+        assert result.returncode == 0, result.stderr
+        assert f'R"(\n{banner}\n)"' in result.stdout
+
+
+def test_submission_sentinel_does_not_collide_with_user_source(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """A user assertion must not be mistaken for an internal banner sentinel."""
+
+    source = write_source(
+        "sentinel.cpp",
+        textwrap.dedent(
+            """\
+            #define CP_IO_PROFILE_SIMPLE
+            #include "templates/Base.hpp"
+            //=====----- [ Test ] ---------------------------------------------------=====//
+            static_assert(true, "CP_SECTION_BANNER_0");
+            auto main() -> int { return 0; }
+            """
+        ),
+    )
+
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert result.returncode == 0, result.stderr
+    assert 'static_assert(true, "CP_SECTION_BANNER_0");' in result.stdout
+
+
+def test_submission_upgrades_standalone_legacy_solver_marker(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """A standalone legacy solver marker must still anchor the namespace using."""
+
+    source = write_source(
+        "legacy_standalone.cpp",
+        textwrap.dedent(
+            """\
+            #define CP_USE_GLOBAL_STD_NAMESPACE 1
+            #define CP_IO_PROFILE_SIMPLE
+            #include "templates/Base.hpp"
+            /* Main Solver Function */
+            auto main() -> int { return min(1, 2); }
+            """
+        ),
+    )
+
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert result.returncode == 0, result.stderr
+    banner = "//=====----- [ Solve ] --------------------------------------------------=====//"
+    assert result.stdout.index(banner) < result.stdout.index("using namespace std;")
+    assert result.stdout.index("using namespace std;") < result.stdout.index("auto main()")
+
+
+def test_solver_banner_relocates_existing_std_namespace_using(
+    clean_cp_env: None,
+    write_source: Callable[[str, str], Path],
+    flatten_inproc: Callable[..., FlattenResult],
+) -> None:
+    """An existing global namespace using belongs immediately after Solve."""
+
+    banner = "//=====----- [ Solve ] --------------------------------------------------=====//"
+    source = write_source(
+        "existing_using.cpp",
+        textwrap.dedent(
+            f"""\
+            #define CP_USE_GLOBAL_STD_NAMESPACE 1
+            #define CP_IO_PROFILE_SIMPLE
+            #include "templates/Base.hpp"
+            using namespace std;
+            {banner}
+            auto main() -> int {{ return min(1, 2); }}
+            """
+        ),
+    )
+
+    result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.index(banner) < result.stdout.index("using namespace std;")
+    assert result.stdout.index("using namespace std;") < result.stdout.index("auto main()")
+
+
 def test_flattener_keeps_reverse_loop_macros_from_need_core(
     clean_cp_env: None,
     write_source: Callable[[str, str], Path],

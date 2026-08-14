@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/ContainerAliases.hpp"
 
-//===----------------------------------------------------------------------===//
-/* N-Dimensional Vector Utilities */
+//=====----- [ NdVec ] --------------------------------------------------=====//
 
 template <class T>
 auto make_vec2(Size n1, Size n2) { return Vec(n1, Vec<T>(n2)); }

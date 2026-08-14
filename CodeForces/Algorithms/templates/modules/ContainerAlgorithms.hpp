@@ -3,8 +3,7 @@
 #include "templates/core/Contracts.hpp"
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Container Algorithms */
+//=====----- [ Container Alg ] ------------------------------------------=====//
 
 template <typename T>
 VecI32 argsort(const Vec<T>& values, bool reverse = false) {

@@ -4,8 +4,7 @@
 #endif
 #include "templates/core/FeatureDetect.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Scalar Type Aliases */
+//=====----- [ Types ] --------------------------------------------------=====//
 
 using I8  = std::int8_t;
 using I16 = std::int16_t;

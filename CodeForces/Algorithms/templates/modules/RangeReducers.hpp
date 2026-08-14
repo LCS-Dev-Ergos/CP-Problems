@@ -4,8 +4,7 @@
 #include "templates/core/ScalarTypes.hpp"
 #include "templates/core/TypeTraits.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Range Reducers */
+//=====----- [ Range ] --------------------------------------------------=====//
 
 // clang-format off
 namespace cp {

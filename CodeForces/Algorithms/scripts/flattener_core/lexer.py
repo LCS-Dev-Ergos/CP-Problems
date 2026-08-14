@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 
 IDENTIFIER_RE = re.compile(r"\b[A-Za-z_]\w*\b")
+SECTION_BANNER_RE = re.compile(r"^//=====----- \[ [^\]\r\n]+ \] -+=====//$")
 STRUCT_CLASS_RE = re.compile(r"^\s*(?:template\s*<[^>]*>\s*)?(?:struct|class)\s+([A-Za-z_]\w*)\b")
 USING_RE = re.compile(r"^\s*using\s+([A-Za-z_]\w*)\b")
 # ``(?:const\s*)?`` keeps the optional qualifier *inside* a single whitespace
@@ -106,7 +107,8 @@ def _scan_cpp_text(
     ``literal_mode``:
       - ``"space"``: replace literal payload with spaces/newlines
       - ``"token"``: replace each literal with a stable placeholder token
-      - ``"keep"``:  keep literals as-is
+      - ``"keep"``: keep literals as-is
+      - ``"line_token"``: replace literals while preserving line numbers
     """
 
     out: list[str] = []
@@ -128,6 +130,10 @@ def _scan_cpp_text(
                 out.append(token)
             elif literal_mode == "space":
                 out.extend("\n" if ch == "\n" else " " for ch in literal)
+            elif literal_mode == "line_token":
+                out.append(f"__CP_FLATTENER_LIT_{token_id}__")
+                token_id += 1
+                out.extend("\n" for ch in literal if ch == "\n")
             else:
                 out.append(literal)
             i = raw_end
@@ -165,6 +171,10 @@ def _scan_cpp_text(
                 out.append(token)
             elif literal_mode == "space":
                 out.extend("\n" if ch == "\n" else " " for ch in literal)
+            elif literal_mode == "line_token":
+                out.append(f"__CP_FLATTENER_LIT_{token_id}__")
+                token_id += 1
+                out.extend("\n" for ch in literal if ch == "\n")
             else:
                 out.append(literal)
             i = literal_end
@@ -194,12 +204,24 @@ def mask_code_literals(text: str) -> tuple[str, dict[str, str]]:
     return _scan_cpp_text(text, keep_comments=True, literal_mode="token")
 
 
+def mask_code_literals_preserving_lines(text: str) -> str:
+    """Mask literals while preserving their original line numbers."""
+
+    return _scan_cpp_text(text, keep_comments=True, literal_mode="line_token")[0]
+
+
 def restore_code_literals(masked: str, literals: dict[str, str]) -> str:
     """Restore literal tokens emitted by :func:`mask_code_literals`."""
 
     for token, literal in literals.items():
         masked = masked.replace(token, literal)
     return masked
+
+
+def is_section_banner(line: str) -> bool:
+    """Return whether ``line`` is a canonical 80-column section banner."""
+
+    return len(line) == 80 and SECTION_BANNER_RE.fullmatch(line) is not None
 
 
 def extract_identifiers(text: str) -> set[str]:

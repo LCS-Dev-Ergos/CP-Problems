@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/ScalarTypes.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Lightweight Stopwatch Utility */
+//=====----- [ Timer ] --------------------------------------------------=====//
 
 struct Stopwatch {
   // Not high_resolution_clock: it may alias system_clock and jump backwards.

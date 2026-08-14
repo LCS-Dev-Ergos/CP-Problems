@@ -2,8 +2,7 @@
 #include "templates/core/Contracts.hpp"
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Random Utilities */
+//=====----- [ RNG ] ----------------------------------------------------=====//
 
 inline U64 default_rng_seed() noexcept {
 #ifdef CP_SEED

@@ -245,10 +245,9 @@ def test_advanced_decoupled_modules_submission_compiles(
     result = flatten_inproc(source, env={"CP_FLATTENER_MODE": "submission"})
 
     assert structured.returncode == 0, structured.stderr
-    assert "Search Utilities" in structured.stdout
-    assert "Container Utilities" not in structured.stdout
-    assert "Container Algorithms" not in structured.stdout
-    assert "N-Dimensional Vector Utilities" not in structured.stdout
+    assert "[ Search ]" in structured.stdout
+    assert "[ Containers ]" not in structured.stdout
+    assert "[ NdVec ]" not in structured.stdout
 
     assert result.returncode == 0, result.stderr
     assert 'include "templates/' not in result.stdout
@@ -296,6 +295,7 @@ def test_scaffold_submissions_compile(
     assert result.returncode == 0, result.stderr
     assert 'include "templates/' not in result.stdout
     assert 'include "modules/' not in result.stdout
+    assert "//=====----- [ Solve ]" in result.stdout
 
     compiled = _compile_submission(result.stdout)
     assert compiled.returncode == 0, compiled.stderr

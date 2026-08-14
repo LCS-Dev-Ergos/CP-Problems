@@ -2,8 +2,8 @@
 #include "templates/core/Config.hpp"
 
 #if CP_ENABLE_GCC_OPTIMIZE_PRAGMAS || CP_ENABLE_ARCH_TARGET_PRAGMAS
-  //===----------------------------------------------------------------------===//
-  /* Compiler Pragmas */
+
+//=====----- [ Compiler ] -----------------------------------------------=====//
 
   #if defined(__GNUC__) && !defined(__clang__)
     #if CP_ENABLE_GCC_OPTIMIZE_PRAGMAS

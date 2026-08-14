@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/ScalarTypes.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Container and Utility Aliases */
+//=====----- [ Aliases ] ------------------------------------------------=====//
 
 using String     = std::string;
 using StringView = std::string_view;

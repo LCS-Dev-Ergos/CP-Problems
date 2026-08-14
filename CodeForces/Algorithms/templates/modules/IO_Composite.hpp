@@ -3,8 +3,7 @@
           or templates/modules/Fast_IO.hpp instead."
 #endif
 
-//===----------------------------------------------------------------------===//
-/* Composite I/O Overloads */
+//=====----- [ I/O Composite ] ------------------------------------------=====//
 
 template <class T, class U>
 void read(std::pair<T, U>&);

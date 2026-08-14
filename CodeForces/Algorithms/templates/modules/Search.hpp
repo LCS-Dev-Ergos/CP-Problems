@@ -2,8 +2,7 @@
 #include "templates/core/Contracts.hpp"
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Search Utilities */
+//=====----- [ Search ] -------------------------------------------------=====//
 
 template <typename F>
   requires cp::Predicate<F&, I64>

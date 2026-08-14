@@ -9,8 +9,7 @@
   #include "templates/core/ContainerAliases.hpp"
 #endif
 
-//===----------------------------------------------------------------------===//
-/* Shared I/O Macro and Answer Helper Definitions */
+//=====----- [ I/O Macros ] ---------------------------------------------=====//
 
 #define IN(...) CP_IO_IMPL_READ(__VA_ARGS__)
 #define OUT(...) CP_IO_IMPL_WRITELN(__VA_ARGS__)

@@ -14,6 +14,7 @@ demonstrated in ``test_flattener_inproc.py``.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -40,6 +41,18 @@ from need_resolver import extract_need_macros_from_source, load_need_mapping  # 
 
 
 class FlattenerAuditTests(unittest.TestCase):
+    def test_template_section_banner_labels_are_unique(self) -> None:
+        """Every template header must use one unique canonical section label."""
+
+        banner_re = re.compile(r"^//=====----- \[ ([^\]]+) \] -+=====//$", re.MULTILINE)
+        labels: list[str] = []
+        for header in sorted((ALGORITHMS_DIR / "templates").rglob("*.hpp")):
+            for match in banner_re.finditer(header.read_text(encoding="utf-8")):
+                self.assertEqual(80, len(match.group(0)), header)
+                labels.append(match.group(1))
+
+        self.assertEqual(len(labels), len(set(labels)))
+
     def _project_header_graph(self) -> dict[str, list[str]]:
         """Build a dependency graph of all project .hpp headers by scanning includes.
 
@@ -482,10 +495,10 @@ class FlattenerAuditTests(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, msg=result.stderr)
-            self.assertIn("/* Lightweight I/O Utilities */", result.stdout)
-            self.assertNotIn("/* Container and Utility Aliases */", result.stdout)
-            self.assertNotIn("/* Mathematical Constants and Infinity Values */", result.stdout)
-            self.assertNotIn("/* Mathematical Utilities */", result.stdout)
+            self.assertIn("[ I/O ]", result.stdout)
+            self.assertNotIn("[ Aliases ]", result.stdout)
+            self.assertNotIn("[ Const ]", result.stdout)
+            self.assertNotIn("[ Int Math ]", result.stdout)
 
     # NOTE: test_flattener_expands_base_include_with_trailing_comment migrated
     # to tests/test_flattener_inproc.py (in-process pytest fixture variant).
@@ -533,8 +546,7 @@ class FlattenerAuditTests(unittest.TestCase):
                     #define NEED_IO
                     #include "templates/Base.hpp"
 
-                    //===----------------------------------------------------------------------===//
-                    /* Main Solver Function */
+                    //=====----- [ Solve ] --------------------------------------------------=====//
 
                     auto main() -> int { return min(1, 2); }
                     """
@@ -552,11 +564,11 @@ class FlattenerAuditTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             self.assertLess(
-                result.stdout.index("/* Lightweight I/O Utilities */"),
+                result.stdout.index("[ I/O ]"),
                 result.stdout.index("using namespace std;"),
             )
             self.assertLess(
-                result.stdout.index("/* Main Solver Function */"),
+                result.stdout.index("[ Solve ]"),
                 result.stdout.index("using namespace std;"),
             )
             self.assertLess(
@@ -693,16 +705,14 @@ class FlattenerAuditTests(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, msg=result.stderr)
-            banner = (
-                "//===----------------------------------------------------------------------===//"
-            )
+            banner = "//=====-----"
             # Every nested section banner must be preceded by exactly one blank line.
             for section in (
-                "/* Random Utilities */",
-                "/* Integer Mathematical Utilities */",
+                "[ RNG ]",
+                "[ Int Math ]",
             ):
-                self.assertIn(f"\n\n{banner}\n{section}", result.stdout)
-                self.assertNotIn(f"\n\n\n{banner}\n{section}", result.stdout)
+                self.assertIn(f"\n\n{banner} {section}", result.stdout)
+                self.assertNotIn(f"\n\n\n{banner} {section}", result.stdout)
 
     def test_default_submission_headers_use_bits_without_portable_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -740,6 +750,7 @@ class FlattenerAuditTests(unittest.TestCase):
                     #define CP_USE_BITS_HEADER 0
                     #define CP_IO_PROFILE_SIMPLE
                     #include "templates/Base.hpp"
+                    //=====----- [ Test ] ---------------------------------------------------=====//
                     // user comment
                     auto main() -> int {
                       INT(x); /* inline comment */
@@ -762,6 +773,7 @@ class FlattenerAuditTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             self.assertIn("#include <bits/stdc++.h>", result.stdout)
             self.assertNotIn("Portable Standard Library Includes", result.stdout)
+            self.assertIn("//=====----- [ Test ] ---------------------------------------------------=====//", result.stdout)
             self.assertNotIn("user comment", result.stdout)
             self.assertNotIn("inline comment", result.stdout)
             self.assertNotIn("\n\n\n", result.stdout)

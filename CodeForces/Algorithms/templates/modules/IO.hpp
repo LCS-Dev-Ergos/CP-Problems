@@ -2,8 +2,7 @@
 #include "templates/core/Contracts.hpp"
 #include "templates/core/ScalarTypes.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Lightweight I/O Utilities */
+//=====----- [ I/O ] ----------------------------------------------------=====//
 
 #if !defined(CP_FAST_IO_NAMESPACE_DEFINED)
 namespace cp_io {

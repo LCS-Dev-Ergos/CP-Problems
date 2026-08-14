@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/advanced/RangeStreamConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Strong Types */
+//=====----- [ Strong Types ] -------------------------------------------=====//
 
 namespace cp {
 

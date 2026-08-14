@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/ScalarTypes.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Extended Type Traits */
+//=====----- [ Traits ] -------------------------------------------------=====//
 
 template <typename To>
 [[gnu::always_inline]] constexpr To as(auto&& x)

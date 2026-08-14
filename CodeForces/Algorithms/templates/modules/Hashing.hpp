@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Randomized Hash Utilities (anti-collision for unordered containers) */
+//=====----- [ Hashing ] ------------------------------------------------=====//
 
 namespace cp::hashing {
 

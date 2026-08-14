@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/ScalarTypes.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Mathematical Constants and Infinity Values */
+//=====----- [ Const ] --------------------------------------------------=====//
 
 // High-precision mathematical constants:
 constexpr F80 PI   = 3.1415926535897932384626433832795028841971693993751L;

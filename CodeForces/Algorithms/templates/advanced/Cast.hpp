@@ -4,8 +4,7 @@
 #include "templates/core/Debug.hpp"
 #include "templates/core/TypeTraits.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Explicit Cast Helpers and Narrowing Policy */
+//=====----- [ Cast ] ---------------------------------------------------=====//
 
 namespace cp::cast {
 

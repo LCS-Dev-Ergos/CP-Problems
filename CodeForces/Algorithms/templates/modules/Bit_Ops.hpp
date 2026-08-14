@@ -3,8 +3,7 @@
 #include "templates/core/CoreConcepts.hpp"
 #include "templates/core/TypeTraits.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Advanced Bitwise Operations */
+//=====----- [ Bits ] ---------------------------------------------------=====//
 
 namespace cp::detail {
 

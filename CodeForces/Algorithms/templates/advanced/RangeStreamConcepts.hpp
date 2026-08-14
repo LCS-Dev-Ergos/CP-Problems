@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/CoreConcepts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Range and Stream Concepts */
+//=====----- [ Range Concepts ] -----------------------------------------=====//
 
 namespace cp {
 

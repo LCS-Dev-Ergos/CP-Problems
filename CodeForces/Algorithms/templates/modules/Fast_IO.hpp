@@ -17,8 +17,7 @@
   #error "Fast_IO.hpp must be included before IO.hpp when both I/O backends are used."
 #endif
 
-//===----------------------------------------------------------------------===//
-/* Fast I/O */
+//=====----- [ Fast I/O ] -----------------------------------------------=====//
 
 namespace fast_io {
 

@@ -1,8 +1,7 @@
 #pragma once
 #include "templates/core/Config.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Standard Library Includes */
+//=====----- [ STL ] ----------------------------------------------------=====//
 
 // Config.hpp already downgraded the flag when <bits/stdc++.h> is unreachable.
 #if CP_USE_BITS_HEADER

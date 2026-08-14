@@ -1,7 +1,6 @@
 #pragma once
 
-//===----------------------------------------------------------------------===//
-/* Portable Standard Library Includes — C++20 baseline, no bits/stdc++.h */
+//=====----- [ Portable STL ] -------------------------------------------=====//
 
 // I/O
 #include <fstream>

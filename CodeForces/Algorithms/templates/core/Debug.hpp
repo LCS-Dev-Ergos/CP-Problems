@@ -2,8 +2,7 @@
 #include "templates/core/FeatureDetect.hpp"
 #include "templates/core/Contracts.hpp"
 
-//===----------------------------------------------------------------------===//
-/* Debug and Assertion Policy */
+//=====----- [ Debug ] --------------------------------------------------=====//
 
 #ifdef LOCAL
   #include "debug.h"

@@ -40,6 +40,11 @@ HEADER_DOC_BLOCK = """\
 """
 
 
+def _section_banner(name: str) -> str:
+    prefix = f"//=====----- [ {name} ] "
+    return prefix + "-" * (80 - len(prefix) - len("-----=====//")) + "-----=====//"
+
+
 def _append_macro_guard(lines: list[str], name: str, value: int | None = None) -> None:
     """Append an ``#ifndef`` guarded macro definition to ``lines``."""
 
@@ -73,15 +78,13 @@ def _render_scaffold(profile: ScaffoldProfile) -> str:
         "",
         '#include "templates/Base.hpp"',
         "",
-        "//===----------------------------------------------------------------------===//",
-        "/* Main Solver Function */",
+        _section_banner("Solve"),
         "",
         "void solve() {",
         "  // Optimized solution here",
         "}",
         "",
-        "//===----------------------------------------------------------------------===//",
-        "/* Main Function */",
+        _section_banner("Main"),
         "",
         "auto main() -> int {",
         "#ifdef LOCAL",
@@ -93,8 +96,6 @@ def _render_scaffold(profile: ScaffoldProfile) -> str:
         "",
         "  return 0;",
         "}",
-        "",
-        "//===----------------------------------------------------------------------===//",
         "",
     ]
     return "\n".join(lines)

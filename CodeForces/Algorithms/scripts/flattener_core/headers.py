@@ -163,8 +163,7 @@ OPTIONAL_HEADER_TRIGGER_TOKENS: dict[str, set[str]] = {
 HEADER_DEPENDENCIES: dict[str, set[str]] = {}
 
 MODULE_SECTION_SEPARATOR = (
-    "//===----------------------------------------------------------------------===//\n"
-    "/* Data Structures & Algorithms for the Problem */\n"
+    "//=====----- [ Modules ] ------------------------------------------------=====//\n"
 )
 
 

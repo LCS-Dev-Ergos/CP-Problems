@@ -1,8 +1,7 @@
 #pragma once
 #include <functional>
 
-//===----------------------------------------------------------------------===//
-/* Min/Max and Update Helpers */
+//=====----- [ MinMax ] -------------------------------------------------=====//
 
 #ifndef CP_UTILITY_FUNCTIONS_INCLUDED
 #define CP_UTILITY_FUNCTIONS_INCLUDED

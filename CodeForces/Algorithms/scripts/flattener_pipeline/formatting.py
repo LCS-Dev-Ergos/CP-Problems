@@ -16,6 +16,7 @@ import shutil
 import sys
 
 from _lib.process import ProcessRequest, run_capture
+from flattener_core.lexer import is_section_banner, mask_code_literals_preserving_lines
 
 # Self-contained, gentle style for the generated artifact. The repo's own
 # ``.clang-format`` is ``DisableFormat: true`` (sources are hand-laid-out), so
@@ -31,12 +32,44 @@ _CLANG_FORMAT_STYLE = (
 )
 
 
+def normalize_section_banner_spacing(source: str) -> str:
+    """Keep one blank line around every canonical section banner."""
+
+    lines = source.splitlines()
+    literal_masked_lines = mask_code_literals_preserving_lines(source).splitlines()
+    normalized: list[str] = []
+    after_banner = False
+    for idx, line in enumerate(lines):
+        is_banner = (
+            is_section_banner(line)
+            and idx < len(literal_masked_lines)
+            and line == literal_masked_lines[idx]
+        )
+        if is_banner:
+            while normalized and not normalized[-1].strip():
+                normalized.pop()
+            if normalized:
+                normalized.append("")
+            normalized.append(line)
+            after_banner = True
+            continue
+        if after_banner:
+            if not line.strip():
+                continue
+            normalized.append("")
+            after_banner = False
+        normalized.append(line)
+
+    output = "\n".join(normalized)
+    return output + "\n" if source.endswith("\n") else output
+
+
 def reindent_with_clang_format(source: str) -> str:
-    """Re-indent ``source`` via clang-format; return it unchanged on any failure."""
+    """Re-indent ``source`` via clang-format and normalize section banners."""
 
     executable = shutil.which("clang-format")
     if executable is None:
-        return source
+        return normalize_section_banner_spacing(source)
     result = run_capture(
         ProcessRequest(
             argv=[
@@ -53,5 +86,5 @@ def reindent_with_clang_format(source: str) -> str:
             "warning: clang-format failed, emitting unformatted output "
             f"(exit {result.returncode})\n"
         )
-        return source
-    return result.stdout
+        return normalize_section_banner_spacing(source)
+    return normalize_section_banner_spacing(result.stdout)
